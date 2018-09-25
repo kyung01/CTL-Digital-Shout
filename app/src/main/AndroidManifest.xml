@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- September 24/2018
+Require permission BLUETOOTH, BLUETOOTH_ADMIN, CHANGE_WIFI_STATE, and ACCESS_COARSE_LOCATION.
+Do request these permissions during runtime as they are considered as "dangerous". -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.example.yourname.ctldigitalshoutdemo">
 	<!-- Required for Nearby Connections -->
 	<uses-permission android:name="android.permission.BLUETOOTH" />
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 	<application
