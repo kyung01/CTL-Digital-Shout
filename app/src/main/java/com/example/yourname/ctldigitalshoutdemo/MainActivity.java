@@ -22,6 +22,9 @@ import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
 import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    //The serviceId value must uniquely identify your app. As a best practice, use the package name of your app (for example, com.google.example.myapp
     String SERVICE_ID = "service_id_here";
     private String getUserNickname(){
     	return "user_nickname_here";
@@ -129,12 +132,32 @@ public class MainActivity extends AppCompatActivity {
 				mConnectionLifecycleCallback,new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
 		);
 	}
+	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
+			new EndpointDiscoveryCallback() {
+				@Override
+				public void onEndpointFound(
+						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
+					// An endpoint was found!
+				}
 
+				@Override
+				public void onEndpointLost(String endpointId) {
+					// A previously discovered endpoint has gone away.
+				}
+			};
+	private void startDiscovery() {
+		Nearby.getConnectionsClient(this).startDiscovery(
+				SERVICE_ID,
+				mEndpointDiscoveryCallback,
+				new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
+		);
+	}
 	public void onClickBttnAdvertise(View view) {
 		startAdvertising();
 	}
 
 	public void onClickBttnDiscover(View view) {
+		startDiscovery();
 	}
 
 	public void onClickBttnTransmit(View view) {
