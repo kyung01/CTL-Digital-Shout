@@ -140,7 +140,23 @@ public class MainActivity extends AppCompatActivity {
 				getUserNickname(),
 				SERVICE_ID,
 				mConnectionLifecycleCallback,new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
-		);
+		)
+				.addOnSuccessListener(
+						new OnSuccessListener<Void>() {
+							@Override
+							public void onSuccess(Void unusedResult) {
+								// We're advertising!
+								Log.d(TAG, "onSuccess: Advertisement Success " + unusedResult);
+							}
+						})
+				.addOnFailureListener(
+						new OnFailureListener() {
+							@Override
+							public void onFailure(@NonNull Exception e) {
+								// We were unable to start advertising.
+								Log.d(TAG, "onFailure: Advertisement Failure " + e);
+							}
+						});
 	}
 	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
 			new EndpointDiscoveryCallback() {
