@@ -138,25 +138,46 @@ public class MainActivity extends AppCompatActivity {
 				public void onEndpointFound(
 						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
 					// An endpoint was found!
+					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
 				}
 
 				@Override
 				public void onEndpointLost(String endpointId) {
 					// A previously discovered endpoint has gone away.
+					Log.d(TAG, "onEndpointLost: " + endpointId);
 				}
 			};
 	private void startDiscovery() {
+		Log.d(TAG, "startDiscovery: ");
 		Nearby.getConnectionsClient(this).startDiscovery(
 				SERVICE_ID,
 				mEndpointDiscoveryCallback,
 				new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
-		);
+		).addOnSuccessListener(
+				new OnSuccessListener<Void>() {
+					@Override
+					public void onSuccess(Void unusedResult) {
+						// We're discovering!
+						Log.d(TAG, "onSuccess: startDiscovery is discovering " + unusedResult);
+					}
+				})
+				.addOnFailureListener(
+						new OnFailureListener() {
+							@Override
+							public void onFailure(@NonNull Exception e) {
+								// We were unable to start discovering.
+								Log.d(TAG, "onFailure: startDiscovery unable to start discover " + e);
+							}
+						}
+				);
 	}
 	public void onClickBttnAdvertise(View view) {
+		Log.d(TAG, "onClickBttnAdvertise: ");
 		startAdvertising();
 	}
 
 	public void onClickBttnDiscover(View view) {
+		Log.d(TAG, "onClickBttnDiscover: ");
 		startDiscovery();
 	}
 
