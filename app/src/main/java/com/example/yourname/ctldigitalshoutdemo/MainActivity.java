@@ -32,11 +32,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 public class MainActivity extends AppCompatActivity {
 	String TAG = "CTLDebug";
 
+	void requestPermission(String permission){
+
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate: Created");
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+
+		String[] permissionsRequested ={Manifest.permission.ACCESS_COARSE_LOCATION};
+
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
 				!= PackageManager.PERMISSION_GRANTED) {
 			Log.d(TAG, "onCreate: permission is not granted");
 			// Permission is not granted
@@ -50,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 				// No explanation needed; request the permission
 				Log.d(TAG, "onCreate: No explanation needed");
 				ActivityCompat.requestPermissions(this,
-						new String[]{Manifest.permission.READ_CONTACTS},
+						permissionsRequested,
 						0); //it is supposed to be MY_PERMISSIONS_REQUEST_READ_CONTACTS not 0
 
 				// MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
@@ -75,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+		Log.d(TAG, "onRequestPermissionsResult: ");
         switch (requestCode) {
             // I dont know what MY_PERMISSIONS_REQUEST_READ_CONTACTS is supposed to be.
             default:
@@ -84,9 +92,11 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
+					Log.d(TAG, "onRequestPermissionsResult: permission was granted");
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+					Log.d(TAG, "onRequestPermissionsResult: permission is denied");
                 }
                 return;
             }
