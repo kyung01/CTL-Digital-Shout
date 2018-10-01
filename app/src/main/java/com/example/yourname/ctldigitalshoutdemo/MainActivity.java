@@ -31,10 +31,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity {
 	String TAG = "CTLDebug";
+	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler("UserNickName","ServiceID");
 
-	void requestPermission(String permission){
-
-	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
 		Log.d(TAG, "onCreate: Created");
 
 		String[] permissionsRequested ={Manifest.permission.ACCESS_COARSE_LOCATION};
-
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
 				!= PackageManager.PERMISSION_GRANTED) {
 			Log.d(TAG, "onCreate: permission is not granted");
@@ -71,9 +68,6 @@ public class MainActivity extends AppCompatActivity {
 		Log.d(TAG, "onCreate: Permission check is completed");
 
 		setContentView(R.layout.activity_main);
-		FusedLocationProviderClient client =
-				LocationServices.getFusedLocationProviderClient(this);
-
 	}
 	/*
 	from https://developer.android.com/training/permissions/requesting#java
@@ -106,105 +100,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //The serviceId value must uniquely identify your app. As a best practice, use the package name of your app (for example, com.google.example.myapp
-    String SERVICE_ID = "service_id_here";
-    private String getUserNickname(){
-    	return "user_nickname_here";
-	}
 
-	private final ConnectionLifecycleCallback mConnectionLifecycleCallback =
-			new ConnectionLifecycleCallback() {
-
-
-				@Override
-				public void onConnectionInitiated(@NonNull String s, @NonNull ConnectionInfo connectionInfo) {
-					Log.d(TAG, "onConnectionInitiated: ");
-				}
-
-				@Override
-				public void onConnectionResult(String endpointId, ConnectionResolution result) {
-					Log.d(TAG, "onConnectionResult: ");
-				}
-
-				@Override
-				public void onDisconnected(String endpointId) {
-					// We've been disconnected from this endpoint. No more data can be
-					// sent or received.
-					Log.d(TAG, "onDisconnected: ");
-				}
-			};
-
-	private void startAdvertising() {
-		Log.d(TAG, "startAdvertising: Called");
-		Nearby.getConnectionsClient(this).startAdvertising(
-				getUserNickname(),
-				SERVICE_ID,
-				mConnectionLifecycleCallback,new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
-		)
-				.addOnSuccessListener(
-						new OnSuccessListener<Void>() {
-							@Override
-							public void onSuccess(Void unusedResult) {
-								// We're advertising!
-								Log.d(TAG, "onSuccess: Advertisement Success " + unusedResult);
-							}
-						})
-				.addOnFailureListener(
-						new OnFailureListener() {
-							@Override
-							public void onFailure(@NonNull Exception e) {
-								// We were unable to start advertising.
-								Log.d(TAG, "onFailure: Advertisement Failure " + e);
-							}
-						});
-	}
-	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
-			new EndpointDiscoveryCallback() {
-				@Override
-				public void onEndpointFound(
-						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
-					// An endpoint was found!
-					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
-				}
-
-				@Override
-				public void onEndpointLost(String endpointId) {
-					// A previously discovered endpoint has gone away.
-					Log.d(TAG, "onEndpointLost: " + endpointId);
-				}
-			};
-	private void startDiscovery() {
-		Log.d(TAG, "startDiscovery: ");
-		Nearby.getConnectionsClient(this).startDiscovery(
-				SERVICE_ID,
-				mEndpointDiscoveryCallback,
-				new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
-		).addOnSuccessListener(
-				new OnSuccessListener<Void>() {
-					@Override
-					public void onSuccess(Void unusedResult) {
-						// We're discovering!
-						Log.d(TAG, "onSuccess: startDiscovery is discovering " + unusedResult);
-					}
-				})
-				.addOnFailureListener(
-						new OnFailureListener() {
-							@Override
-							public void onFailure(@NonNull Exception e) {
-								// We were unable to start discovering.
-								Log.d(TAG, "onFailure: startDiscovery unable to start discover " + e);
-							}
-						}
-				);
-	}
 	public void onClickBttnAdvertise(View view) {
 		Log.d(TAG, "onClickBttnAdvertise: ");
-		startAdvertising();
+		nearbyConnectionHandler.startAdvertising(this);
 	}
 
 	public void onClickBttnDiscover(View view) {
 		Log.d(TAG, "onClickBttnDiscover: ");
-		startDiscovery();
+		nearbyConnectionHandler.startDiscovery(this);
 	}
 
 	public void onClickBttnTransmit(View view) {
