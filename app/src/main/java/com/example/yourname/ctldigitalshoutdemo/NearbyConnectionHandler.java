@@ -29,6 +29,9 @@ public class NearbyConnectionHandler {
 	String USER_NICKNAME = "USER_NICKNAME_DEFAULT";
 	String SERVICE_ID = "SERVICE_ID_DEFAULT";
 
+	boolean isAdvertising = false;
+	boolean isDiscovering = false;
+
 	NearbyConnectionHandler(String userNickName, String serviceId){
 		USER_NICKNAME = userNickName;
 		SERVICE_ID = serviceId;
@@ -65,6 +68,7 @@ public class NearbyConnectionHandler {
 
 	public void startAdvertising(AppCompatActivity activity) {
 		Log.d(TAG, "startAdvertising: Called");
+		isAdvertising = true;
 		Nearby.getConnectionsClient(activity).startAdvertising(
 				USER_NICKNAME,
 				SERVICE_ID,
@@ -104,6 +108,7 @@ public class NearbyConnectionHandler {
 			};
 	public void startDiscovery(AppCompatActivity activity) {
 		Log.d(TAG, "startDiscovery: ");
+		isDiscovering = true;
 		Nearby.getConnectionsClient(activity).startDiscovery(
 				SERVICE_ID,
 				mEndpointDiscoveryCallback,
