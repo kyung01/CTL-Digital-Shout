@@ -6,6 +6,7 @@ https://code.tutsplus.com/tutorials/google-play-services-using-the-nearby-connec
 package com.example.yourname.ctldigitalshoutdemo;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -33,11 +34,12 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity {
 	String TAG = "CTLDebug";
-	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler("UserNickName","ServiceID");
+	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler(this,"UserNickName","ServiceID");
 
 	private RecyclerView mRecyclerView;
 	private RecyclerView.Adapter mAdapter;
 	private RecyclerView.LayoutManager mLayoutManager;
+	RecyclerViewHandler recyclerViewHandler = new RecyclerViewHandler();
 
 	void requestPermissions(){
 
@@ -73,25 +75,14 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		NearbyConnectionHandler.context = this;
+
 		Log.d(TAG, "onCreate: Created");
 		String[] myDataset = new String[]{"APPLE", "BANANA","CAR","DOG","CUP","HEAD"};
+
 		setContentView(R.layout.activity_main);
 		requestPermissions();
-
-		mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-
-		// use this setting to improve performance if you know that changes
-		// in content do not change the layout size of the RecyclerView
-		mRecyclerView.setHasFixedSize(true);
-
-		// use a linear layout manager
-		mLayoutManager = new LinearLayoutManager(this);
-		mRecyclerView.setLayoutManager(mLayoutManager);
-
-		// specify an adapter (see also next example)
-		mAdapter = new MyAdapter(myDataset);
-		mRecyclerView.setAdapter(mAdapter);
-
+		recyclerViewHandler.init(this,myDataset);
 	}
 	/*
 	from https://developer.android.com/training/permissions/requesting#java
@@ -137,4 +128,6 @@ public class MainActivity extends AppCompatActivity {
 
 	public void onClickBttnTransmit(View view) {
 	}
+
+
 }
