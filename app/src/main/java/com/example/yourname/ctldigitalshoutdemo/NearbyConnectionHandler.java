@@ -214,6 +214,7 @@ public class NearbyConnectionHandler {
 
 		// Add it to the tracking list so we can update it.
 		outgoingPayloads.put(payload.getId(), notification);
+		Nearby.getConnectionsClient(context).sendPayload(endpointId,payload);
 	}
 
 	private NotificationCompat.Builder buildNotification(Payload payload, boolean isIncoming) {
@@ -253,6 +254,7 @@ public class NearbyConnectionHandler {
 
 		@Override
 		public void onPayloadTransferUpdate(String endpointId, PayloadTransferUpdate update) {
+			Log.d(TAG, "onPayloadTransferUpdate: Called");
 			long payloadId = update.getPayloadId();
 			NotificationCompat.Builder notification;
 			if (incomingPayloads.containsKey(payloadId)) {
