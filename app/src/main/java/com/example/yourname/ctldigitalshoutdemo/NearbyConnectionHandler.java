@@ -58,6 +58,7 @@ public class NearbyConnectionHandler {
 				@Override
 				public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
 					// Automatically accept the connection on both sides.
+					Log.d(TAG, "onConnectionInitiated: Accepting the connection");
 					Nearby.getConnectionsClient(context).acceptConnection(endpointId, mPayloadCallback);
 				}
 
@@ -114,6 +115,7 @@ public class NearbyConnectionHandler {
 							}
 						});
 	}
+	String endPointConnected= "";
 	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
 			new EndpointDiscoveryCallback() {
 				@Override
@@ -121,6 +123,7 @@ public class NearbyConnectionHandler {
 						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
 					// An endpoint was found!
 					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
+					endPointConnected = endpointId;
 					Nearby.getConnectionsClient(context).requestConnection(
 							USER_NICKNAME,
 							endpointId,
@@ -133,6 +136,7 @@ public class NearbyConnectionHandler {
 											// must accept before the connection is established.
 
 											Log.d(TAG, "onSuccess: Successfully requested a connection");
+
 										}
 									})
 							.addOnFailureListener(
@@ -141,6 +145,7 @@ public class NearbyConnectionHandler {
 										public void onFailure(@NonNull Exception e) {
 											// Nearby Connections failed to request the connection.
 											Log.d(TAG, "onFailure: Failed to request the connection");
+											endPointConnected = "";
 										}
 									});
 
@@ -179,50 +184,62 @@ public class NearbyConnectionHandler {
 	}
 
 
+	public void sendPayload(){
+		if(endPointConnected == ""){
+			Log.d(TAG, "sendPayload: Returning because there is no endpoint connected");
+			return;
+		}
+		Log.d(TAG, "sendPayload: Sending a payload");
+		sendPayload(endPointConnected, Payload.fromBytes("Hello".getBytes()));
+
+	}
+
+	private final SimpleArrayMap<Long, NotificationCompat.Builder> incomingPayloads = new SimpleArrayMap<>();
+	private final SimpleArrayMap<Long, NotificationCompat.Builder> outgoingPayloads = new SimpleArrayMap<>();
+	//...
+
+
+	void sendPayload(String endpointId, Payload payload) {
+		if (payload.getType() == Payload.Type.BYTES) {
+			// No need to track progress for bytes.
+
+			//return;
+		}
+
+		// Build and start showing the notification.
+		NotificationCompat.Builder notification = buildNotification(payload, false /*isIncoming*/);
+		((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE))
+				.notify((int) payload.getId(), notification.build());
+
+
+		// Add it to the tracking list so we can update it.
+		outgoingPayloads.put(payload.getId(), notification);
+	}
+
+	private NotificationCompat.Builder buildNotification(Payload payload, boolean isIncoming) {
+		NotificationCompat.Builder notification = new NotificationCompat.Builder(context,"channelID")
+				.setContentTitle(isIncoming ? "Receiving..." : "Sending...");
+		int size = payload.asBytes().length;
+		boolean indeterminate = false;
+		if (size == -1) {
+			// This is a stream payload, so we don't know the size ahead of time.
+			size = 100;
+			indeterminate = true;
+		}
+		notification.setProgress(size, 0, indeterminate);
+		return notification;
+	}
+
 	//...
 	PayloadCallback mPayloadCallback = new PayloadCallback() {
 
 		//Payload
-
-		private final SimpleArrayMap<Long, NotificationCompat.Builder> incomingPayloads = new SimpleArrayMap<>();
-		private final SimpleArrayMap<Long, NotificationCompat.Builder> outgoingPayloads = new SimpleArrayMap<>();
-		//...
-
-
-		private void sendPayload(String endpointId, Payload payload) {
-			if (payload.getType() == Payload.Type.BYTES) {
-				// No need to track progress for bytes.
-				return;
-			}
-
-			// Build and start showing the notification.
-			NotificationCompat.Builder notification = buildNotification(payload, false /*isIncoming*/);
-			((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE))
-					.notify((int) payload.getId(), notification.build());
-
-
-			// Add it to the tracking list so we can update it.
-			outgoingPayloads.put(payload.getId(), notification);
-		}
-
-		private NotificationCompat.Builder buildNotification(Payload payload, boolean isIncoming) {
-			NotificationCompat.Builder notification = new NotificationCompat.Builder(context,"channelID")
-					.setContentTitle(isIncoming ? "Receiving..." : "Sending...");
-			int size = payload.asBytes().length;
-			boolean indeterminate = false;
-			if (size == -1) {
-				// This is a stream payload, so we don't know the size ahead of time.
-				size = 100;
-				indeterminate = true;
-			}
-			notification.setProgress(size, 0, indeterminate);
-			return notification;
-		}
-
 		@Override
 		public void onPayloadReceived(String endpointId, Payload payload) {
+			Log.d(TAG, "onPayloadReceived: Payload is here!");
 			if (payload.getType() == Payload.Type.BYTES) {
 				// No need to track progress for bytes.
+				Log.d(TAG, "onPayloadReceived: received: " + payload.asBytes().toString());
 				return;
 			}
 

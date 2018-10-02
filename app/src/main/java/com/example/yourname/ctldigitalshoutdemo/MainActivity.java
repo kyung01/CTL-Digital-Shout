@@ -35,6 +35,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 public class MainActivity extends AppCompatActivity {
 	String TAG = "CTLDebug";
 	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler(this,"UserNickName","ServiceID");
+	NotificationManager notificationManager;
 
 	private RecyclerView mRecyclerView;
 	private RecyclerView.Adapter mAdapter;
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
 		Log.d(TAG, "onCreate: Created");
 		String[] myDataset = new String[]{"APPLE", "BANANA","CAR","DOG","CUP","HEAD"};
-
+		notificationManager =  (NotificationManager) getSystemService(this.NOTIFICATION_SERVICE);
 		setContentView(R.layout.activity_main);
 		requestPermissions();
 		recyclerViewHandler.init(this,myDataset);
@@ -127,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	public void onClickBttnTransmit(View view) {
+		Log.d(TAG, "onClickBttnTransmit: requesting to send a payload to NearbyConnectionHandler");
+    	nearbyConnectionHandler.sendPayload();
 	}
 
 
