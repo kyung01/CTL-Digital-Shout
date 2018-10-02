@@ -240,7 +240,7 @@ public class NearbyConnectionHandler {
 			Log.d(TAG, "onPayloadReceived: Payload is here!");
 			if (payload.getType() == Payload.Type.BYTES) {
 				// No need to track progress for bytes.
-				Log.d(TAG, "onPayloadReceived: received: " + payload.asBytes().toString());
+				Log.d(TAG, "onPayloadReceived: received: " + new String(payload.asBytes()) );
 				return;
 			}
 
