@@ -1,5 +1,7 @@
 package com.example.yourname.ctldigitalshoutdemo;
 
+import java.util.*;
+
 import android.Manifest;
 import android.app.NotificationManager;
 import android.content.pm.PackageManager;
@@ -31,6 +33,8 @@ import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.List;
+
 public class NearbyConnectionHandler {
 	public static AppCompatActivity context;
 
@@ -40,10 +44,28 @@ public class NearbyConnectionHandler {
 
 	boolean isAdvertising = false;
 	boolean isDiscovering = false;
+	List<String> endpoints = new ArrayList<String>();
 
 	NearbyConnectionHandler(AppCompatActivity activity, String userNickName, String serviceId){
 		USER_NICKNAME = userNickName;
 		SERVICE_ID = serviceId;
+	}
+
+	void addEndpoint(String addedEndpoint){
+		for(int i = 0; i < endpoints.size();i++){
+			if(endpoints.get(i) == addedEndpoint){
+				return;
+			}
+		}
+		endpoints.add(addedEndpoint);
+	}
+	void removeEndpoint(String removedEndpoint){
+		for(int i = 0; i < endpoints.size();i++){
+			if(endpoints.get(i) == removedEndpoint){
+				endpoints.remove(i);
+				return;
+			}
+		}
 	}
 
 
@@ -191,7 +213,10 @@ public class NearbyConnectionHandler {
 		}
 		Log.d(TAG, "sendPayload: Sending a payload");
 		sendPayload(endPointConnected, Payload.fromBytes("Hello".getBytes()));
-
+		Payload payload = Payload.fromBytes("Hello".getBytes());
+		for(int i = 0 ; i < endpoints.size();i++){
+			sendPayload(endpoints.get(i),payload);
+		}
 	}
 
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> incomingPayloads = new SimpleArrayMap<>();

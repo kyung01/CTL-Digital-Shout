@@ -117,6 +117,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
 	public void onClickBttnAdvertise(View view) {
 		Log.d(TAG, "onClickBttnAdvertise: ");
 		nearbyConnectionHandler.startAdvertising(this);
