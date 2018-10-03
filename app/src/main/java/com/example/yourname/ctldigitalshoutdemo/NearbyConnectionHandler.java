@@ -34,6 +34,10 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
+interface NearbyConnectionListener{
+	void onEndpointAdded(String endpoint);
+	void onEndpointRemoved(String endpoint);
+}
 
 public class NearbyConnectionHandler {
 	public static AppCompatActivity context;
@@ -45,6 +49,7 @@ public class NearbyConnectionHandler {
 	boolean isAdvertising = false;
 	boolean isDiscovering = false;
 	List<String> endpoints = new ArrayList<String>();
+	List<NearbyConnectionListener> listeners = new ArrayList<NearbyConnectionListener>();
 
 	NearbyConnectionHandler(AppCompatActivity activity, String userNickName, String serviceId){
 		USER_NICKNAME = userNickName;
@@ -58,11 +63,17 @@ public class NearbyConnectionHandler {
 			}
 		}
 		endpoints.add(addedEndpoint);
+		for(NearbyConnectionListener lst: listeners){
+			lst.onEndpointAdded(addedEndpoint);
+		}
 	}
 	void removeEndpoint(String removedEndpoint){
 		for(int i = 0; i < endpoints.size();i++){
 			if(endpoints.get(i) == removedEndpoint){
 				endpoints.remove(i);
+				for(NearbyConnectionListener lst: listeners){
+					lst.onEndpointAdded(removedEndpoint);
+				}
 				return;
 			}
 		}
@@ -137,7 +148,6 @@ public class NearbyConnectionHandler {
 							}
 						});
 	}
-	String endPointConnected= "";
 	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
 			new EndpointDiscoveryCallback() {
 				@Override
@@ -145,7 +155,7 @@ public class NearbyConnectionHandler {
 						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
 					// An endpoint was found!
 					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
-					endPointConnected = endpointId;
+					addEndpoint(endpointId);
 					Nearby.getConnectionsClient(context).requestConnection(
 							USER_NICKNAME,
 							endpointId,
@@ -167,7 +177,6 @@ public class NearbyConnectionHandler {
 										public void onFailure(@NonNull Exception e) {
 											// Nearby Connections failed to request the connection.
 											Log.d(TAG, "onFailure: Failed to request the connection");
-											endPointConnected = "";
 										}
 									});
 
@@ -177,6 +186,7 @@ public class NearbyConnectionHandler {
 				public void onEndpointLost(String endpointId) {
 					// A previously discovered endpoint has gone away.
 					Log.d(TAG, "onEndpointLost: " + endpointId);
+					removeEndpoint(endpointId);
 				}
 			};
 	public void startDiscovery(AppCompatActivity activity) {
@@ -207,6 +217,7 @@ public class NearbyConnectionHandler {
 
 
 	public void sendPayload(){
+		/*
 		if(endPointConnected == ""){
 			Log.d(TAG, "sendPayload: Returning because there is no endpoint connected");
 			return;
@@ -217,6 +228,7 @@ public class NearbyConnectionHandler {
 		for(int i = 0 ; i < endpoints.size();i++){
 			sendPayload(endpoints.get(i),payload);
 		}
+		 */
 	}
 
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> incomingPayloads = new SimpleArrayMap<>();

@@ -32,14 +32,14 @@ import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements  NearbyConnectionListener {
 	String TAG = "CTLDebug";
-	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler(this,"UserNickName","ServiceID");
 	NotificationManager notificationManager;
 
 	private RecyclerView mRecyclerView;
 	private RecyclerView.Adapter mAdapter;
 	private RecyclerView.LayoutManager mLayoutManager;
+	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler(this,"UserNickName","ServiceID");
 	RecyclerViewHandler recyclerViewHandler = new RecyclerViewHandler();
 
 	void requestPermissions(){
@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		nearbyConnectionHandler.listeners.add(this);
+
 		NearbyConnectionHandler.context = this;
 
 		Log.d(TAG, "onCreate: Created");
@@ -110,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return;
             }
-
             // other 'case' lines to check for other
             // permissions this app might request.
         }
@@ -135,4 +136,22 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 
+	int hprStringToInt(String s){
+    	int num = 0;
+    	for(int i = 0 ; i < s.length();i++){
+    		num += (int)s.charAt(i) * Math.pow(10,i);
+		}
+		return num;
+	}
+
+	@Override
+	public void onEndpointAdded(String endpoint) {
+    	recyclerViewHandler.display(hprStringToInt(endpoint),endpoint);
+	}
+
+	@Override
+	public void onEndpointRemoved(String endpoint) {
+		recyclerViewHandler.remove(hprStringToInt(endpoint));
+
+	}
 }
