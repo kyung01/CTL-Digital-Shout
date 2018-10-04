@@ -17,6 +17,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 
 import com.google.android.gms.location.*;
 import com.google.android.gms.nearby.Nearby;
@@ -32,7 +33,7 @@ import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MainActivity extends AppCompatActivity implements  NearbyConnectionListener {
+public class MainActivity extends AppCompatActivity implements  NearbyConnectionListener, RecyclerViewListener {
 	String TAG = "CTLDebug";
 	NotificationManager notificationManager;
 
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		nearbyConnectionHandler.listeners.add(this);
+		recyclerViewHandler.listeners.add(this);
 
 		NearbyConnectionHandler.context = this;
 
@@ -153,5 +155,11 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	public void onEndpointRemoved(String endpoint) {
 		recyclerViewHandler.remove(hprStringToInt(endpoint));
 
+	}
+
+	@Override
+	public void onViewClick(int id, String content) {
+		EditText mEdit   = (EditText)findViewById(R.id.textEdit);
+		nearbyConnectionHandler.sendPayload(content, mEdit.getText().toString());
 	}
 }

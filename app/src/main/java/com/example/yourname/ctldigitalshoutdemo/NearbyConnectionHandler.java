@@ -230,6 +230,12 @@ public class NearbyConnectionHandler {
 		}
 		 */
 	}
+	public void sendPayload(String endpoint, String content) {
+		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
+		Payload payload = Payload.fromBytes(content.getBytes());
+		Nearby.getConnectionsClient(context).sendPayload(endpoint,payload);
+
+	}
 
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> incomingPayloads = new SimpleArrayMap<>();
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> outgoingPayloads = new SimpleArrayMap<>();

@@ -61,6 +61,7 @@
 		app:layout_constraintTop_toBottomOf="@+id/bttnDiscover">
 
 		<android.support.design.widget.TextInputEditText
+			android:id="@+id/textEdit"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:gravity="top|left"
@@ -82,5 +83,19 @@
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+
+	<LinearLayout
+		android:layout_width="285dp"
+		android:layout_height="96dp"
+		android:orientation="horizontal"
+		tools:layout_editor_absoluteX="118dp"
+		tools:layout_editor_absoluteY="8dp">
+
+		<android.support.constraint.ConstraintLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
+
+		</android.support.constraint.ConstraintLayout>
+	</LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

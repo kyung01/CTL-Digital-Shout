@@ -8,9 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class RecyclerViewHandler {
-	class Item{
-		Item(int id, String content){
+interface RecyclerViewListener{
+	void onViewClick(int id, String content);
+
+
+}
+
+public class RecyclerViewHandler implements  MyAdapterListener{
+	class Item {
+		Item(int id, String content) {
 			this.id = id;
 			this.content = content;
 		}
@@ -23,8 +29,9 @@ public class RecyclerViewHandler {
 	private RecyclerView.Adapter mAdapter;
 	private RecyclerView.LayoutManager mLayoutManager;
 	private List<Item> items = new ArrayList<Item>();
+	List<RecyclerViewListener> listeners = new ArrayList<RecyclerViewListener>();
 
-	public void init(AppCompatActivity activity, String[] myDataset){
+	public void init(AppCompatActivity activity, String[] myDataset) {
 		mRecyclerView = (RecyclerView) activity.findViewById(R.id.recyclerView);
 
 		// use this setting to improve performance if you know that changes
@@ -36,35 +43,46 @@ public class RecyclerViewHandler {
 		mRecyclerView.setLayoutManager(mLayoutManager);
 
 		// specify an adapter (see also next example)
-		mAdapter = new MyAdapter(myDataset);
-		mRecyclerView.setAdapter(mAdapter);
 
 	}
 
-	public void display(int id, String content){
-		for(int  i = 0; i < items.size();i++){
-			if(id == items.get(i).id) {
+	public void display(int id, String content) {
+		for (int i = 0; i < items.size(); i++) {
+			if (id == items.get(i).id) {
 				//the item already exist in the list
 				items.get(i).content = content;
 				return;
 			}
 		}
 		//Item is not a duplicate, you can add.
-		items.add(new Item(id,content));
-		List<String> tempList = new ArrayList<String>();
-		for(int i = 0 ; i < items.size();i++){
-			tempList.add(items.get(i).content);
-		}
-
-		mAdapter = new MyAdapter(tempList.toArray(new String[0]));
-		mRecyclerView.setAdapter(mAdapter);
+		items.add(new Item(id, content));
+		syncItems();
 	}
-	public void remove(int id){
-		for(int  i = 0; i < items.size();i++){
-			if(id == items.get(i).id) {
+
+	public void remove(int id) {
+		for (int i = 0; i < items.size(); i++) {
+			if (id == items.get(i).id) {
 				items.remove(i);
 				return;
 			}
+		}
+		syncItems();
+	}
+
+	private void syncItems() {
+		List<MyAdapter.Data> tempList = new ArrayList<MyAdapter.Data>();
+		for (int i = 0; i < items.size(); i++) {
+			tempList.add(new MyAdapter.Data(items.get(i).id , items.get(i).content ) );
+		}
+		MyAdapter madpt = new MyAdapter(tempList);
+		madpt.listeners.add(this);
+		mAdapter = madpt;
+		mRecyclerView.setAdapter(mAdapter);
+	}
+	@Override
+	public void onClick(int id, String content) {
+		for(RecyclerViewListener l : listeners){
+			l.onViewClick(id,content);
 		}
 	}
 
