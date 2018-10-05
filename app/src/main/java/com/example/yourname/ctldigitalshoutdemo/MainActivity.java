@@ -54,17 +54,18 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		recyclerViewHandler.listeners.add(this);
 
 		NearbyConnectionHandler.context = this;
-		feedback.init((TextView)findViewById(R.id.textView));
+		feedback.init((TextView)findViewById(R.id.kTextView));
 
 		Log.d(TAG, "onCreate: Created");
 		String[] myDataset = new String[]{"APPLE", "BANANA","CAR","DOG","CUP","HEAD"};
 		notificationManager =  (NotificationManager) getSystemService(this.NOTIFICATION_SERVICE);
 		requestPermissions();
-		recyclerViewHandler.init(this,myDataset);
-		((TextView)findViewById(R.id.TextView) ) .setMovementMethod(new ScrollingMovementMethod());
+		recyclerViewHandler.init(this);
+		recyclerViewHandler.display(123456,"example_content");
+		((TextView)findViewById(R.id.kTextView) ) .setMovementMethod(new ScrollingMovementMethod());
 
 	}
-	
+
 	/*
 	from https://developer.android.com/training/permissions/requesting#java
 	When the user responds to your app's permission request, the system invokes your app's onRequestPermissionsResult() method, passing it the user response. Your app has to override that method to find out whether the permission was granted. The callback is passed the same request code you passed to requestPermissions(). For example, if an app requests READ_CONTACTS access it might have the following callback method:

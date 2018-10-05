@@ -31,7 +31,7 @@ public class RecyclerViewHandler implements  MyAdapterListener{
 	private List<Item> items = new ArrayList<Item>();
 	List<RecyclerViewListener> listeners = new ArrayList<RecyclerViewListener>();
 
-	public void init(AppCompatActivity activity, String[] myDataset) {
+	public void init(AppCompatActivity activity) {
 		mRecyclerView = (RecyclerView) activity.findViewById(R.id.recyclerView);
 
 		// use this setting to improve performance if you know that changes

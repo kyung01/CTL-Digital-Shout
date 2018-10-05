@@ -96,7 +96,7 @@
 			android:layout_height="match_parent">
 
 			<TextView
-				android:id="@+id/TextView"
+				android:id="@+id/kTextView"
 				android:layout_width="0dp"
 				android:layout_height="wrap_content"
 				android:scrollbars="vertical"
