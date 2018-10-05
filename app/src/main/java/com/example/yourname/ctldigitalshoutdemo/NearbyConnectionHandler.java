@@ -57,23 +57,26 @@ public class NearbyConnectionHandler {
 		SERVICE_ID = serviceId;
 	}
 
-	void addEndpoint(String addedEndpoint){
+	boolean addEndpoint(String addedEndpoint){
+		Log.d(TAG, "addEndpoint: "+addedEndpoint);
 		for(int i = 0; i < endpoints.size();i++){
-			if(endpoints.get(i) == addedEndpoint){
-				return;
+			if(endpoints.get(i).equals(addedEndpoint)){
+				Log.d(TAG, "addEndpoint: Duplicate endpoint ("+addedEndpoint+")");
+				return false;
 			}
 		}
 		endpoints.add(addedEndpoint);
 		for(NearbyConnectionListener lst: listeners){
 			lst.onEndpointAdded(addedEndpoint);
 		}
+		return true;
 	}
 	void removeEndpoint(String removedEndpoint){
 		for(int i = 0; i < endpoints.size();i++){
-			if(endpoints.get(i) == removedEndpoint){
+			if(endpoints.get(i).equals(removedEndpoint)){
 				endpoints.remove(i);
 				for(NearbyConnectionListener lst: listeners){
-					lst.onEndpointAdded(removedEndpoint);
+					lst.onEndpointRemoved(removedEndpoint);
 				}
 				return;
 			}
@@ -103,6 +106,7 @@ public class NearbyConnectionHandler {
 						case ConnectionsStatusCodes.STATUS_OK:
 							// We're connected! Can now start sending and receiving data.
 							Log.d(TAG, "onConnectionResult: STATUS_OK");
+							addEndpoint(endpointId);
 							break;
 						case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
 							// The connection was rejected by one or both sides.
@@ -120,13 +124,15 @@ public class NearbyConnectionHandler {
 				public void onDisconnected(String endpointId) {
 					// We've been disconnected from this endpoint. No more data can be
 					// sent or received.
-					Log.d(TAG, "onDisconnected: ");
+					Log.d(TAG, "onDisconnected: " +endpointId);
+					removeEndpoint(endpointId);
 				}
 			};
 
 	public void startAdvertising(AppCompatActivity activity) {
 		Log.d(TAG, "startAdvertising: Called");
 		isAdvertising = true;
+		Nearby.getConnectionsClient(activity).stopAdvertising();
 		Nearby.getConnectionsClient(activity).startAdvertising(
 				USER_NICKNAME,
 				SERVICE_ID,
@@ -156,7 +162,10 @@ public class NearbyConnectionHandler {
 						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
 					// An endpoint was found!
 					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
-					addEndpoint(endpointId);
+					if(!addEndpoint(endpointId)){
+						//the ned point is old, I already know and tried to connect
+						return;
+					}
 					Nearby.getConnectionsClient(context).requestConnection(
 							USER_NICKNAME,
 							endpointId,
@@ -177,7 +186,7 @@ public class NearbyConnectionHandler {
 										@Override
 										public void onFailure(@NonNull Exception e) {
 											// Nearby Connections failed to request the connection.
-											Log.d(TAG, "onFailure: Failed to request the connection");
+											Log.d(TAG, "onFailure: Failed to request the connection " + e);
 										}
 									});
 
@@ -193,6 +202,7 @@ public class NearbyConnectionHandler {
 	public void startDiscovery(AppCompatActivity activity) {
 		Log.d(TAG, "startDiscovery: ");
 		isDiscovering = true;
+		Nearby.getConnectionsClient(activity).stopDiscovery();
 		Nearby.getConnectionsClient(activity).startDiscovery(
 				SERVICE_ID,
 				mEndpointDiscoveryCallback,
@@ -220,8 +230,14 @@ public class NearbyConnectionHandler {
 		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
 		Payload payload = Payload.fromBytes(content.getBytes());
 		Nearby.getConnectionsClient(context).sendPayload(endpoint,payload);
+	}
+	public void sendPayloadToAll(String content){
+		for(String endpoint : endpoints){
+			sendPayload(endpoint,content);
+		}
 
 	}
+
 
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> incomingPayloads = new SimpleArrayMap<>();
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> outgoingPayloads = new SimpleArrayMap<>();

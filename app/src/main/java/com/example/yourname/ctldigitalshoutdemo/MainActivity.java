@@ -113,12 +113,34 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		feedback.display("["+ endpoint + "] sent [" + content+"]\n");
 	}
 
-
 	@Override
-	public void onViewClick(int id, String content) {
-		EditText mEdit   = (EditText)findViewById(R.id.textEdit);
-		nearbyConnectionHandler.sendPayload(content, mEdit.getText().toString());
+	public void onViewClick(int id, String endpoint) {
+		nearbyConnectionHandler.sendPayload(endpoint, hprGetInput());
+		feedback.display("sent to  ["+endpoint+"]: [" +hprGetInput()+"]\n");
 	}
+
+	public void onClickBttnAdvertise(View view) {
+		Log.d(TAG, "onClickBttnAdvertise: ");
+		nearbyConnectionHandler.startAdvertising(this);
+	}
+
+	public void onClickBttnDiscover(View view) {
+		Log.d(TAG, "onClickBttnDiscover: ");
+		nearbyConnectionHandler.startDiscovery(this);
+	}
+
+	public void onClickBttnTransmit(View view) {
+		Log.d(TAG, "onClickBttnTransmit: requesting to send a payload to NearbyConnectionHandler");
+		//Send message to everyone that's on the list
+		nearbyConnectionHandler.sendPayloadToAll(hprGetInput());
+		feedback.display("sent to [ALL]: ["+hprGetInput()+"]\n");
+	}
+
+	String hprGetInput(){
+		EditText mEdit   = (EditText)findViewById(R.id.textEdit);
+		return mEdit.getText().toString();
+	}
+
 
 	void requestPermissions(){
 
@@ -151,20 +173,6 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		Log.d(TAG, "onCreate: Permission check is completed");
 	}
 
-	public void onClickBttnAdvertise(View view) {
-		Log.d(TAG, "onClickBttnAdvertise: ");
-		nearbyConnectionHandler.startAdvertising(this);
-	}
-
-	public void onClickBttnDiscover(View view) {
-		Log.d(TAG, "onClickBttnDiscover: ");
-		nearbyConnectionHandler.startDiscovery(this);
-	}
-
-	public void onClickBttnTransmit(View view) {
-		Log.d(TAG, "onClickBttnTransmit: requesting to send a payload to NearbyConnectionHandler");
-		//Send message to everyone that's on the list
-	}
 
 
 	int hprStringToInt(String s){
