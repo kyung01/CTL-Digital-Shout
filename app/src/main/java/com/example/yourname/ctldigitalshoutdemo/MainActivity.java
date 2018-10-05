@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 
 		NearbyConnectionHandler.context = this;
 		feedback.init((TextView)findViewById(R.id.kTextView));
+		feedback.clean();
+		feedback.display("Feedback Test Message\n");
 
 		Log.d(TAG, "onCreate: Created");
 		String[] myDataset = new String[]{"APPLE", "BANANA","CAR","DOG","CUP","HEAD"};
@@ -108,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 
 	@Override
 	public void onPayoadMessageReceived(String endpoint, String content) {
-		feedback.display("["+ endpoint + "] sent [" + content+"]");
+		feedback.display("["+ endpoint + "] sent [" + content+"]\n");
 	}
 
 
