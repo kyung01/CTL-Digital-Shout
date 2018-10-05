@@ -37,6 +37,7 @@ import java.util.List;
 interface NearbyConnectionListener{
 	void onEndpointAdded(String endpoint);
 	void onEndpointRemoved(String endpoint);
+	void onPayoadMessageReceived(String endpoint, String content);
 }
 
 public class NearbyConnectionHandler {
@@ -215,21 +216,6 @@ public class NearbyConnectionHandler {
 				);
 	}
 
-
-	public void sendPayload(){
-		/*
-		if(endPointConnected == ""){
-			Log.d(TAG, "sendPayload: Returning because there is no endpoint connected");
-			return;
-		}
-		Log.d(TAG, "sendPayload: Sending a payload");
-		sendPayload(endPointConnected, Payload.fromBytes("Hello".getBytes()));
-		Payload payload = Payload.fromBytes("Hello".getBytes());
-		for(int i = 0 ; i < endpoints.size();i++){
-			sendPayload(endpoints.get(i),payload);
-		}
-		 */
-	}
 	public void sendPayload(String endpoint, String content) {
 		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
 		Payload payload = Payload.fromBytes(content.getBytes());
@@ -241,24 +227,6 @@ public class NearbyConnectionHandler {
 	private final SimpleArrayMap<Long, NotificationCompat.Builder> outgoingPayloads = new SimpleArrayMap<>();
 	//...
 
-
-	void sendPayload(String endpointId, Payload payload) {
-		if (payload.getType() == Payload.Type.BYTES) {
-			// No need to track progress for bytes.
-
-			//return;
-		}
-
-		// Build and start showing the notification.
-		NotificationCompat.Builder notification = buildNotification(payload, false /*isIncoming*/);
-		((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE))
-				.notify((int) payload.getId(), notification.build());
-
-
-		// Add it to the tracking list so we can update it.
-		outgoingPayloads.put(payload.getId(), notification);
-		Nearby.getConnectionsClient(context).sendPayload(endpointId,payload);
-	}
 
 	private NotificationCompat.Builder buildNotification(Payload payload, boolean isIncoming) {
 		NotificationCompat.Builder notification = new NotificationCompat.Builder(context,"channelID")
@@ -283,7 +251,10 @@ public class NearbyConnectionHandler {
 			Log.d(TAG, "onPayloadReceived: Payload is here!");
 			if (payload.getType() == Payload.Type.BYTES) {
 				// No need to track progress for bytes.
-				Log.d(TAG, "onPayloadReceived: received: " + new String(payload.asBytes()) );
+				String message = new String(payload.asBytes());
+				Log.d(TAG, "onPayloadReceived: received: " + message );
+				for(NearbyConnectionListener l : listeners)
+					l.onPayoadMessageReceived(endpointId,message);
 				return;
 			}
 
