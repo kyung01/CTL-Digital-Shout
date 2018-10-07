@@ -111,10 +111,12 @@ public class NearbyConnectionHandler {
 						case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
 							// The connection was rejected by one or both sides.
 							Log.d(TAG, "onConnectionResult: REJECTED");
+							removeEndpoint(endpointId);
 							break;
 						case ConnectionsStatusCodes.STATUS_ERROR:
 							// The connection broke before it was able to be accepted.
 							Log.d(TAG, "onConnectionResult: ERROR");
+							removeEndpoint(endpointId);
 							break;
 					}
 
@@ -159,11 +161,11 @@ public class NearbyConnectionHandler {
 			new EndpointDiscoveryCallback() {
 				@Override
 				public void onEndpointFound(
-						String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
+						final String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
 					// An endpoint was found!
 					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
 					if(!addEndpoint(endpointId)){
-						//the ned point is old, I already know and tried to connect
+						//Already conntected prob from advertisement phase
 						return;
 					}
 					Nearby.getConnectionsClient(context).requestConnection(
@@ -187,6 +189,7 @@ public class NearbyConnectionHandler {
 										public void onFailure(@NonNull Exception e) {
 											// Nearby Connections failed to request the connection.
 											Log.d(TAG, "onFailure: Failed to request the connection " + e);
+											removeEndpoint(endpointId);
 										}
 									});
 
