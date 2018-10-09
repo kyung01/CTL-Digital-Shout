@@ -8,7 +8,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 interface KAdapterListener{
 	void onClick(int id, String endpoint);
@@ -22,24 +24,25 @@ public class KAdapter extends RecyclerView.Adapter<KViewHolder> implements  KVie
 
 
 	public static class Data{
-		Data(int id, String content){
-			this.id = id;
+		Data(String content, boolean isConneted){
 			this.content = content;
+			this.isConnected = isConneted;
 		}
-		public int id;
 		public String content;
+		public  boolean isConnected;
 	}
 
 
 	final String TAG = "MyAdapter";
-	private List<Data> mDataset;
+	private Map<Integer, Data> mDataset;
 	public List<KAdapterListener> listeners = new ArrayList<KAdapterListener>();
-	public List<KViewHolder> holders = new ArrayList<>();
+	public Map<Integer, KViewHolder> holders = new Hashtable<>();
 
 
 
 	// Provide a suitable constructor (depends on the kind of dataset)
-	public KAdapter(List<Data> myDataset) {
+	public KAdapter( Map<Integer,Data> myDataset) {
+
 		mDataset = myDataset;
 	}
 
@@ -60,9 +63,16 @@ public class KAdapter extends RecyclerView.Adapter<KViewHolder> implements  KVie
 	public void onBindViewHolder(KViewHolder holder, final int position) {
 		// - get element from your dataset at this position
 		// - replace the contents of the view with that element
-		holder.init(mDataset.get(position).id,mDataset.get(position).content);
+		int count = 0;
+		for (Map.Entry<Integer,Data> entry : mDataset.entrySet()) {
+			if(count++ == position){
+				//Found the correct data
+				holder.init(entry.getKey(),entry.getValue().content,entry.getValue().isConnected);
+				break;
+			}
+		}
 		holder.listeners.add(this);
-		holders.add(holder);
+		holders.put(holder.id, holder);
 	}
 
 	// Return the size of your dataset (invoked by the layout manager)

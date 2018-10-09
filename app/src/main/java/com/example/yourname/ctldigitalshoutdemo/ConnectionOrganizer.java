@@ -16,7 +16,6 @@ public class ConnectionOrganizer {
 
 	public  void add(String endpoint){
 		connections.put(endpoint,new ConnectionInfo());
-
 	}
 	public void setConnected(String endpoint, boolean state){
 		connections.get(endpoint).isConnected = state;

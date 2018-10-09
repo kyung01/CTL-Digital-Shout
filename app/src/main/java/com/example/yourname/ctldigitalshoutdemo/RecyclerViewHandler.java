@@ -5,11 +5,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 interface RecyclerViewListener{
-	void onViewClick(int id, String content);
+	void onRcyViewClick(int id, String content);
+	void onRcyClickConnection(int id, String content);
+	void onRcyClickSend(int id, String content);
 
 
 }
@@ -18,19 +23,19 @@ public class RecyclerViewHandler implements  KAdapterListener{
 
 
 	class Item {
-		Item(int id, String content) {
-			this.id = id;
-			this.content = content;
+		Item(String endpoint) {
+			this.content = endpoint;
+			this.isConnected = false;
 		}
 
-		public int id;
 		public String content;
+		public boolean isConnected;
 	}
 
 	private RecyclerView mRecyclerView;
 	private RecyclerView.Adapter mAdapter;
 	private RecyclerView.LayoutManager mLayoutManager;
-	private List<Item> items = new ArrayList<Item>();
+	private Map<Integer, Item> items = new Hashtable<Integer ,Item>();
 	List<RecyclerViewListener> listeners = new ArrayList<RecyclerViewListener>();
 
 	public void init(AppCompatActivity activity) {
@@ -49,63 +54,67 @@ public class RecyclerViewHandler implements  KAdapterListener{
 		add(2,"Charlie");
 
 	}
-
-	void add(int id, String content) {
-		for (int i = 0; i < items.size(); i++) {
-			if (id == items.get(i).id) {
-				//the item already exist in the list
-				items.get(i).content = content;
-				return;
-			}
+	public void setConnected(int id, boolean b) {
+		items.get(id).isConnected = b;
+		syncItems();
+	}
+	public void add(int id, String content) {
+		if(!items.containsKey(id)){
+			items.put(id, new Item(content));
 		}
-		//Item is not a duplicate, you can add.
-		items.add(new Item(id, content));
+		else{
+			items.get(id).content = content;
+		}
+
 		syncItems();
 	}
 
 	public void remove(int id) {
-		for (int i = 0; i < items.size(); i++) {
-			if (id == items.get(i).id) {
-				items.remove(i);
-			}
+		if(items.containsKey((id))){
+			items.remove(id);
 		}
+
 		syncItems();
 	}
 
 	private void syncItems() {
-		List<KAdapter.Data> tempList = new ArrayList<KAdapter.Data>();
-		for (int i = 0; i < items.size(); i++) {
-			tempList.add(new KAdapter.Data(items.get(i).id , items.get(i).content ) );
+		Map<Integer, KAdapter.Data> tempList = new Hashtable<>();
+		for (Map.Entry<Integer,Item> entry : items.entrySet()) {
+			int key = entry.getKey();
+			Item value = entry.getValue();
+			tempList.put(entry.getKey(), new KAdapter.Data(value.content,value.isConnected));
 		}
-		KAdapter madpt = new KAdapter(tempList);
-		madpt.listeners.add(this);
-		mAdapter = madpt;
+
+		KAdapter tempAdapter = new KAdapter(tempList);
+		tempAdapter.listeners.add(this);
+		mAdapter = tempAdapter;
 		mRecyclerView.setAdapter(mAdapter);
 	}
+
+
 
 	//Handling events fired from Adapter
 	@Override
 	public void onClick(int id, String content) {
 		for(RecyclerViewListener l : listeners){
-			l.onViewClick(id,content);
+			l.onRcyViewClick(id,content);
 		}
 	}
 
 	@Override
 	public void onClickConnect(int id, String endpoint) {
 
-
+		for(RecyclerViewListener l : listeners){
+			l.onRcyClickConnection(id,endpoint);
+		}
 	}
 
 	@Override
 	public void onClickSend(int id, String endpoint) {
 
-	}
-
-	public void add(String endpointId) {
-	}
-
-	public void setConnected(String endpointId, boolean b) {
+		for(RecyclerViewListener l : listeners){
+			l.onRcyClickSend(id,endpoint);
+		}
 	}
 
 

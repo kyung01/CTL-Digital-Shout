@@ -3,7 +3,8 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content">
+	android:layout_height="wrap_content"
+	>
 
 	<android.support.constraint.ConstraintLayout
 		android:layout_width="match_parent"
@@ -12,12 +13,14 @@
 
 		<TextView
 			android:id="@+id/textView"
-			android:layout_width="wrap_content"
+			android:layout_width="0dp"
 			android:layout_height="wrap_content"
 			android:layout_weight="1"
-			android:text="TextView"
-			android:textSize="30sp"
+			android:text="sdkaosdksaodklsadk"
+			android:textSize="24sp"
 			android:textStyle="bold"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toStartOf="@+id/bttnConnection"
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toTopOf="parent" />
 
@@ -26,6 +29,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="Connect"
+			app:layout_constraintBottom_toBottomOf="parent"
 			app:layout_constraintEnd_toStartOf="@+id/bttnSend"
 			app:layout_constraintTop_toTopOf="parent" />
 
@@ -35,6 +39,7 @@
 			android:layout_height="wrap_content"
 			android:layout_weight="1"
 			android:text="Send"
+			app:layout_constraintBottom_toBottomOf="parent"
 			app:layout_constraintEnd_toEndOf="parent"
 			app:layout_constraintTop_toTopOf="parent" />
 	</android.support.constraint.ConstraintLayout>
