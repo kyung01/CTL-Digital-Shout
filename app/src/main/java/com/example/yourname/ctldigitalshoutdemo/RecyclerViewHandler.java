@@ -15,6 +15,8 @@ interface RecyclerViewListener{
 }
 
 public class RecyclerViewHandler implements  KAdapterListener{
+
+
 	class Item {
 		Item(int id, String content) {
 			this.id = id;
@@ -42,13 +44,13 @@ public class RecyclerViewHandler implements  KAdapterListener{
 		mLayoutManager = new LinearLayoutManager(activity);
 		mRecyclerView.setLayoutManager(mLayoutManager);
 
-		display(0,"Alpha");
-		display(1,"Beta");
-		display(2,"Charlie");
+		add(0,"Alpha");
+		add(1,"Beta");
+		add(2,"Charlie");
 
 	}
 
-	public void display(int id, String content) {
+	void add(int id, String content) {
 		for (int i = 0; i < items.size(); i++) {
 			if (id == items.get(i).id) {
 				//the item already exist in the list
@@ -99,6 +101,13 @@ public class RecyclerViewHandler implements  KAdapterListener{
 	public void onClickSend(int id, String endpoint) {
 
 	}
+
+	public void add(String endpointId) {
+	}
+
+	public void setConnected(String endpointId, boolean b) {
+	}
+
 
 
 }

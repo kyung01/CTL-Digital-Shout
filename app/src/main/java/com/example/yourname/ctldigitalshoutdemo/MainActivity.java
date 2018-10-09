@@ -8,12 +8,10 @@ package com.example.yourname.ctldigitalshoutdemo;
 import android.Manifest;
 import android.app.NotificationManager;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -21,19 +19,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.android.gms.location.*;
-import com.google.android.gms.nearby.Nearby;
-import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
-import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
-import com.google.android.gms.nearby.connection.DiscoveryOptions;
-import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
-import com.google.android.gms.nearby.connection.Strategy;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity implements  NearbyConnectionListener, RecyclerViewListener {
 	String TAG = "CTLDebug";
@@ -64,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		notificationManager =  (NotificationManager) getSystemService(this.NOTIFICATION_SERVICE);
 		requestPermissions();
 		recyclerViewHandler.init(this);
-		recyclerViewHandler.display(123456,"example_content");
+		recyclerViewHandler.add(123456,"example_content");
 		((TextView)findViewById(R.id.kTextView) ) .setMovementMethod(new ScrollingMovementMethod());
 
 	}
@@ -104,25 +93,49 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	@Override
 	public void onDcvEndPointFound(String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
 		mConnectionOrganizer.add(endpointId);
+		recyclerViewHandler.add(endpointId);
 	}
 
 	@Override
 	public void onDcvEndPointLost(String endpointId) {
-
+        mConnectionOrganizer.setConnected(endpointId, false);
+        recyclerViewHandler.setConnected(endpointId, false);
 	}
 
 	@Override
 	public void onAdvConnectionRequested(String endpoint, ConnectionInfo info) {
+        //request to accept the connection
+        nearbyConnectionHandler.acceptRequest(this, endpoint);
 
 	}
 
 	@Override
 	public void onAdvConnectionResult(String endpointId, ConnectionResolution result) {
 
+        switch (result.getStatus().getStatusCode()) {
+            case ConnectionsStatusCodes.STATUS_OK:
+                // We're connected! Can now start sending and receiving data.
+                Log.d(TAG, "onConnectionResult: STATUS_OK");
+                mConnectionOrganizer.setConnected(endpointId, true);
+                break;
+            case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
+                // The connection was rejected by one or both sides.
+                Log.d(TAG, "onConnectionResult: REJECTED");
+                mConnectionOrganizer.setConnected(endpointId, false);
+                break;
+            case ConnectionsStatusCodes.STATUS_ERROR:
+                // The connection broke before it was able to be accepted.
+                Log.d(TAG, "onConnectionResult: ERROR");
+                mConnectionOrganizer.setConnected(endpointId, false);
+                break;
+        }
+
 	}
 
 	@Override
 	public void onAdvtDisconnected(String endpointId) {
+        mConnectionOrganizer.setConnected(endpointId, false);
+        recyclerViewHandler.setConnected(endpointId, false);
 
 	}
 
@@ -134,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	//RecylerViewListener
 	@Override
 	public void onViewClick(int id, String endpoint) {
-		nearbyConnectionHandler.sendPayload(endpoint, hprGetInput());
 		feedback.display("sent to  ["+endpoint+"]: [" +hprGetInput()+"]\n");
 	}
 

@@ -3,6 +3,7 @@ package com.example.yourname.ctldigitalshoutdemo;
 import java.util.*;
 
 import android.app.NotificationManager;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.util.SimpleArrayMap;
@@ -70,7 +71,6 @@ public class NearbyConnectionHandler {
 					for(NearbyConnectionListener lst: listeners){
 						lst.onAdvConnectionRequested(endpointId, connectionInfo);
 					}
-					Nearby.getConnectionsClient(context).acceptConnection(endpointId, mPayloadCallback);
 
 				}
 
@@ -278,4 +278,8 @@ public class NearbyConnectionHandler {
 	};
 
 
+	public void acceptRequest(Context context, String endpoint) {
+
+		Nearby.getConnectionsClient(context).acceptConnection(endpoint, mPayloadCallback);
+	}
 }
