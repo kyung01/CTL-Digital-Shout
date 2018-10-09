@@ -157,6 +157,10 @@ public class NearbyConnectionHandler {
 							}
 						});
 	}
+	void requestConnection(String userNickname, String endpoint){
+
+	}
+
 	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
 			new EndpointDiscoveryCallback() {
 				@Override

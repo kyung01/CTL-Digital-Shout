@@ -14,7 +14,7 @@ interface RecyclerViewListener{
 
 }
 
-public class RecyclerViewHandler implements  MyAdapterListener{
+public class RecyclerViewHandler implements  KAdapterListener{
 	class Item {
 		Item(int id, String content) {
 			this.id = id;
@@ -42,7 +42,9 @@ public class RecyclerViewHandler implements  MyAdapterListener{
 		mLayoutManager = new LinearLayoutManager(activity);
 		mRecyclerView.setLayoutManager(mLayoutManager);
 
-		// specify an adapter (see also next example)
+		display(0,"Alpha");
+		display(1,"Beta");
+		display(2,"Charlie");
 
 	}
 
@@ -69,20 +71,33 @@ public class RecyclerViewHandler implements  MyAdapterListener{
 	}
 
 	private void syncItems() {
-		List<MyAdapter.Data> tempList = new ArrayList<MyAdapter.Data>();
+		List<KAdapter.Data> tempList = new ArrayList<KAdapter.Data>();
 		for (int i = 0; i < items.size(); i++) {
-			tempList.add(new MyAdapter.Data(items.get(i).id , items.get(i).content ) );
+			tempList.add(new KAdapter.Data(items.get(i).id , items.get(i).content ) );
 		}
-		MyAdapter madpt = new MyAdapter(tempList);
+		KAdapter madpt = new KAdapter(tempList);
 		madpt.listeners.add(this);
 		mAdapter = madpt;
 		mRecyclerView.setAdapter(mAdapter);
 	}
+
+	//Handling events fired from Adapter
 	@Override
 	public void onClick(int id, String content) {
 		for(RecyclerViewListener l : listeners){
 			l.onViewClick(id,content);
 		}
+	}
+
+	@Override
+	public void onClickConnect(int id, String endpoint) {
+
+
+	}
+
+	@Override
+	public void onClickSend(int id, String endpoint) {
+
 	}
 
 
