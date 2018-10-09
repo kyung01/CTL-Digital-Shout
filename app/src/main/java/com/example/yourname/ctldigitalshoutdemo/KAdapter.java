@@ -20,6 +20,7 @@ public class KAdapter extends RecyclerView.Adapter<KViewHolder> implements  KVie
 
 
 
+
 	public static class Data{
 		Data(int id, String content){
 			this.id = id;

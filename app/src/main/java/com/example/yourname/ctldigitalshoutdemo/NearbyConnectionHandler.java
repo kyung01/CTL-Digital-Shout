@@ -2,21 +2,13 @@ package com.example.yourname.ctldigitalshoutdemo;
 
 import java.util.*;
 
-import android.Manifest;
 import android.app.NotificationManager;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.util.SimpleArrayMap;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -35,9 +27,16 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.List;
 interface NearbyConnectionListener{
-	void onEndpointAdded(String endpoint);
-	void onEndpointRemoved(String endpoint);
+	//void onEndpointAdded(String endpoint);
+	//void onEndpointRemoved(String endpoint);
 	void onPayoadMessageReceived(String endpoint, String content);
+
+	void onDcvEndPointFound(String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo);
+	void onDcvEndPointLost(String endpointId);
+
+	void onAdvConnectionRequested(String endpoint, ConnectionInfo info);
+	void onAdvConnectionResult(String endpointId, ConnectionResolution result);
+	void onAdvtDisconnected(String endpointId);
 }
 
 public class NearbyConnectionHandler {
@@ -49,7 +48,6 @@ public class NearbyConnectionHandler {
 
 	boolean isAdvertising = false;
 	boolean isDiscovering = false;
-	List<String> endpoints = new ArrayList<String>();
 	List<NearbyConnectionListener> listeners = new ArrayList<NearbyConnectionListener>();
 
 	NearbyConnectionHandler(AppCompatActivity activity, String userNickName, String serviceId){
@@ -57,66 +55,44 @@ public class NearbyConnectionHandler {
 		SERVICE_ID = serviceId;
 	}
 
-	boolean addEndpoint(String addedEndpoint){
-		Log.d(TAG, "addEndpoint: "+addedEndpoint);
-		for(int i = 0; i < endpoints.size();i++){
-			if(endpoints.get(i).equals(addedEndpoint)){
-				Log.d(TAG, "addEndpoint: Duplicate endpoint ("+addedEndpoint+")");
-				return false;
-			}
-		}
-		endpoints.add(addedEndpoint);
-		for(NearbyConnectionListener lst: listeners){
-			lst.onEndpointAdded(addedEndpoint);
-		}
-		return true;
-	}
-	void removeEndpoint(String removedEndpoint){
-		for(int i = 0; i < endpoints.size();i++){
-			if(endpoints.get(i).equals(removedEndpoint)){
-				endpoints.remove(i);
-				for(NearbyConnectionListener lst: listeners){
-					lst.onEndpointRemoved(removedEndpoint);
-				}
-				return;
-			}
-		}
-	}
-
 
 
 
 	//The serviceId value must uniquely identify your app. As a best practice, use the package name of your app (for example, com.google.example.myapp
 
-
-
-	private final ConnectionLifecycleCallback mConnectionLifecycleCallback =
+	private final ConnectionLifecycleCallback mConnectionLifecycleCallbackAdvertisement =
 			new ConnectionLifecycleCallback() {
 				@Override
 				public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
 					// Automatically accept the connection on both sides.
 					Log.d(TAG, "onConnectionInitiated: Accepting the connection");
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onAdvConnectionRequested(endpointId, connectionInfo);
+					}
 					Nearby.getConnectionsClient(context).acceptConnection(endpointId, mPayloadCallback);
+
 				}
 
 				@Override
 				public void onConnectionResult(String endpointId, ConnectionResolution result) {
 					Log.d(TAG, "onConnectionResult: ");
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onAdvConnectionResult(endpointId, result);
+					}
 					switch (result.getStatus().getStatusCode()) {
 						case ConnectionsStatusCodes.STATUS_OK:
 							// We're connected! Can now start sending and receiving data.
 							Log.d(TAG, "onConnectionResult: STATUS_OK");
-							addEndpoint(endpointId);
 							break;
 						case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
 							// The connection was rejected by one or both sides.
 							Log.d(TAG, "onConnectionResult: REJECTED");
-							removeEndpoint(endpointId);
 							break;
 						case ConnectionsStatusCodes.STATUS_ERROR:
 							// The connection broke before it was able to be accepted.
 							Log.d(TAG, "onConnectionResult: ERROR");
-							removeEndpoint(endpointId);
 							break;
 					}
 
@@ -127,9 +103,14 @@ public class NearbyConnectionHandler {
 					// We've been disconnected from this endpoint. No more data can be
 					// sent or received.
 					Log.d(TAG, "onDisconnected: " +endpointId);
-					removeEndpoint(endpointId);
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onAdvtDisconnected(endpointId);
+					}
 				}
 			};
+
+
 
 	public void startAdvertising(AppCompatActivity activity) {
 		Log.d(TAG, "startAdvertising: Called");
@@ -138,7 +119,7 @@ public class NearbyConnectionHandler {
 		Nearby.getConnectionsClient(activity).startAdvertising(
 				USER_NICKNAME,
 				SERVICE_ID,
-				mConnectionLifecycleCallback,new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
+				mConnectionLifecycleCallbackAdvertisement,new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
 		)
 				.addOnSuccessListener(
 						new OnSuccessListener<Void>() {
@@ -157,53 +138,25 @@ public class NearbyConnectionHandler {
 							}
 						});
 	}
-	void requestConnection(String userNickname, String endpoint){
-
-	}
 
 	private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
 			new EndpointDiscoveryCallback() {
 				@Override
 				public void onEndpointFound(
 						final String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
-					// An endpoint was found!
-					Log.d(TAG, "onEndpointFound: " + endpointId + ", " + discoveredEndpointInfo);
-					if(!addEndpoint(endpointId)){
-						//Already conntected prob from advertisement phase
-						return;
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onDcvEndPointFound(endpointId, discoveredEndpointInfo);
 					}
-					Nearby.getConnectionsClient(context).requestConnection(
-							USER_NICKNAME,
-							endpointId,
-							mConnectionLifecycleCallback)
-							.addOnSuccessListener(
-									new OnSuccessListener<Void>() {
-										@Override
-										public void onSuccess(Void unusedResult) {
-											// We successfully requested a connection. Now both sides
-											// must accept before the connection is established.
-
-											Log.d(TAG, "onSuccess: Successfully requested a connection");
-
-										}
-									})
-							.addOnFailureListener(
-									new OnFailureListener() {
-										@Override
-										public void onFailure(@NonNull Exception e) {
-											// Nearby Connections failed to request the connection.
-											Log.d(TAG, "onFailure: Failed to request the connection " + e);
-											removeEndpoint(endpointId);
-										}
-									});
 
 				}
 
 				@Override
 				public void onEndpointLost(String endpointId) {
-					// A previously discovered endpoint has gone away.
-					Log.d(TAG, "onEndpointLost: " + endpointId);
-					removeEndpoint(endpointId);
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onDcvEndPointLost(endpointId);
+					}
 				}
 			};
 	public void startDiscovery(AppCompatActivity activity) {
@@ -237,12 +190,6 @@ public class NearbyConnectionHandler {
 		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
 		Payload payload = Payload.fromBytes(content.getBytes());
 		Nearby.getConnectionsClient(context).sendPayload(endpoint,payload);
-	}
-	public void sendPayloadToAll(String content){
-		for(String endpoint : endpoints){
-			sendPayload(endpoint,content);
-		}
-
 	}
 
 

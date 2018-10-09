@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler(this,"UserNickName","ServiceID");
 	RecyclerViewHandler recyclerViewHandler = new RecyclerViewHandler();
 	FeedbackTextView feedback = new FeedbackTextView();
+	ConnectionOrganizer mConnectionOrganizer = new ConnectionOrganizer();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -98,14 +99,31 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
         }
     }
 
+
+	//NearbyConnectHandlerListener
 	@Override
-	public void onEndpointAdded(String endpoint) {
-		recyclerViewHandler.display(hprStringToInt(endpoint),endpoint);
+	public void onDcvEndPointFound(String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
+		mConnectionOrganizer.add(endpointId);
 	}
 
 	@Override
-	public void onEndpointRemoved(String endpoint) {
-		recyclerViewHandler.remove(hprStringToInt(endpoint));
+	public void onDcvEndPointLost(String endpointId) {
+
+	}
+
+	@Override
+	public void onAdvConnectionRequested(String endpoint, ConnectionInfo info) {
+
+	}
+
+	@Override
+	public void onAdvConnectionResult(String endpointId, ConnectionResolution result) {
+
+	}
+
+	@Override
+	public void onAdvtDisconnected(String endpointId) {
+
 	}
 
 	@Override
@@ -113,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		feedback.display("["+ endpoint + "] sent [" + content+"]\n");
 	}
 
+	//RecylerViewListener
 	@Override
 	public void onViewClick(int id, String endpoint) {
 		nearbyConnectionHandler.sendPayload(endpoint, hprGetInput());
@@ -132,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	public void onClickBttnTransmit(View view) {
 		Log.d(TAG, "onClickBttnTransmit: requesting to send a payload to NearbyConnectionHandler");
 		//Send message to everyone that's on the list
-		nearbyConnectionHandler.sendPayloadToAll(hprGetInput());
 		feedback.display("sent to [ALL]: ["+hprGetInput()+"]\n");
 	}
 
