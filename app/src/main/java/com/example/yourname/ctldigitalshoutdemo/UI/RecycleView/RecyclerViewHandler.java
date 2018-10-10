@@ -1,25 +1,19 @@
-package com.example.yourname.ctldigitalshoutdemo;
+package com.example.yourname.ctldigitalshoutdemo.UI.RecycleView;
 
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.example.yourname.ctldigitalshoutdemo.R;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 
-interface RecyclerViewListener{
-	void onRcyViewClick(int id, String content);
-	void onRcyClickConnection(int id, String content);
-	void onRcyClickSend(int id, String content);
 
-
-}
-
-public class RecyclerViewHandler implements  KAdapterListener{
+public class RecyclerViewHandler implements KAdapterListener {
 
 
 	class Item {
@@ -36,7 +30,7 @@ public class RecyclerViewHandler implements  KAdapterListener{
 	private RecyclerView.Adapter mAdapter;
 	private RecyclerView.LayoutManager mLayoutManager;
 	private Map<Integer, Item> items = new Hashtable<Integer ,Item>();
-	List<RecyclerViewListener> listeners = new ArrayList<RecyclerViewListener>();
+	public List<RecyclerViewListener> listeners = new ArrayList<RecyclerViewListener>();
 
 	public void init(AppCompatActivity activity) {
 		mRecyclerView = (RecyclerView) activity.findViewById(R.id.recyclerView);
@@ -49,9 +43,7 @@ public class RecyclerViewHandler implements  KAdapterListener{
 		mLayoutManager = new LinearLayoutManager(activity);
 		mRecyclerView.setLayoutManager(mLayoutManager);
 
-		add(0,"Alpha");
-		add(1,"Beta");
-		add(2,"Charlie");
+		add(0,"EndpointIDs");
 
 	}
 	public void setConnected(int id, boolean b) {

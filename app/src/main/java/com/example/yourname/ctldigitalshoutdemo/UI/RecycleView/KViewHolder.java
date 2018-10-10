@@ -1,10 +1,12 @@
-package com.example.yourname.ctldigitalshoutdemo;
+package com.example.yourname.ctldigitalshoutdemo.UI.RecycleView;
 
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.example.yourname.ctldigitalshoutdemo.R;
 
 import java.util.ArrayList;
 import java.util.List;

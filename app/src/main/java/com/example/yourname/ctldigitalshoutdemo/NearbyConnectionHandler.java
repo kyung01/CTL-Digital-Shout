@@ -186,6 +186,12 @@ public class NearbyConnectionHandler {
 				);
 	}
 
+	public void stopDiscovery(AppCompatActivity activity){
+		Nearby.getConnectionsClient(activity).stopDiscovery();
+
+	}
+
+
 	public void sendPayload(String endpoint, String content) {
 		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
 		Payload payload = Payload.fromBytes(content.getBytes());

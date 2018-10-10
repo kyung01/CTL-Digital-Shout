@@ -1,4 +1,4 @@
-package com.example.yourname.ctldigitalshoutdemo;
+package com.example.yourname.ctldigitalshoutdemo.UI;
 
 import android.widget.TextView;
 
