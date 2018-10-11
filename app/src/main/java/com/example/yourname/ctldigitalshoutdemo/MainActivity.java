@@ -171,18 +171,21 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	}
 
 	boolean onEndpointFound(String endpoint){
+		Log.d(TAG, "onEndpointFound: " + endpoint);
+		boolean isNewConnection = false;
 		if(mConnectionOrganizer.add(endpoint)){
-			mConnectionOrganizer.setFound(endpoint,true);
 			//new connection
 			recyclerViewHandler.add(hprStringToInt(endpoint),endpoint);
-			recyclerViewHandler.setFound(hprStringToInt(endpoint) , true);
-			return true;
+			isNewConnection = true;
 		}
+		mConnectionOrganizer.setFound(endpoint,true);
+		recyclerViewHandler.setFound(hprStringToInt(endpoint) , true);
 		//old connection
-		return false;
+		return isNewConnection;
 	}
 
 	boolean onEndpointLost(String endpoint){
+		Log.d(TAG, "onEndpointLost: " + endpoint);
 		mConnectionOrganizer.setFound(endpoint,false);
 		recyclerViewHandler.setFound(hprStringToInt(endpoint) , false);
 		return false;

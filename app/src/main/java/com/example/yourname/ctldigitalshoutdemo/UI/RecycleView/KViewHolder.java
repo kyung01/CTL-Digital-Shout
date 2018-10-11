@@ -27,11 +27,14 @@ public class KViewHolder extends RecyclerView.ViewHolder {
 	public TextView mTextView;
 	public Button bttnConnect,bttnSend;
 	public  int id;
-	public  boolean isConnected;
+	public  boolean isConnected,isFound;
 	public List<KViewHolderListener> listeners = new ArrayList<>();
 
 
 	public String endpoint;
+
+	//animation
+	float rateColorTransitionIsFound = 0;
 
 
 	public KViewHolder(View v) {
@@ -42,10 +45,11 @@ public class KViewHolder extends RecyclerView.ViewHolder {
 		this.bttnSend = (Button)v.findViewById(R.id.bttnSend);
 
 	}
-	public void init( int id, String endpoint, boolean isConnected) {
+	public void init( int id, String endpoint, boolean isConnected,boolean isFound) {
 		this.id = id;
 		this.endpoint = endpoint;
 		setConnected(isConnected);
+		setFound(isFound);
 
 
 		mTextView.setText(endpoint);
@@ -82,10 +86,45 @@ public class KViewHolder extends RecyclerView.ViewHolder {
 				}
 		);
 	}
+	float hprLerp(float a, float b, float f)
+	{
+		return a + f * (b - a);
+	}
+	public void update(float timeElapsed){
+		if(!isFound){
+			//display not found animation
+			float ratio = (float)Math.cos(rateColorTransitionIsFound);
+			ratio = (1 + ratio) * 0.5f;
+			ratio = 1- ratio*ratio;
+			rateColorTransitionIsFound += timeElapsed*10;
+			if(isConnected){
+				//Connected but not found. Display flashing orange
+				view.setBackgroundColor( (Color.rgb(
+						(int)hprLerp(255,0,ratio),
+						(int)hprLerp(165,0,ratio),
+						(int)hprLerp(0,255,ratio)) ) );
+
+			}else{
+				//Not connected and not found. Display flashing red
+				view.setBackgroundColor( (Color.rgb(
+						(int)hprLerp(100,255,ratio),
+						(int)hprLerp(0,0,ratio),
+						(int)hprLerp(0,0,ratio))) );
+			}
+		}
+
+	}
+
 	public  void setConnected(boolean value){
 		this.isConnected = value;
-		view.setBackgroundColor((isConnected)? Color.rgb(0,0,255):Color.rgb(255,0,0));
+		view.setBackgroundColor( (isConnected)? Color.rgb(0,0,255):Color.rgb(255,0,0));
 	}
+	public void setFound(boolean b){
+		this.isFound = b;
+		rateColorTransitionIsFound = 0;
+
+	}
+
 
 
 }

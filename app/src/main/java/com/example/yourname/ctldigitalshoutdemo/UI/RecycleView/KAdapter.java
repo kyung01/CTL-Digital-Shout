@@ -24,12 +24,13 @@ public class KAdapter extends RecyclerView.Adapter<KViewHolder> implements  KVie
 
 
 	public static class Data{
-		Data(String content, boolean isConneted){
+		Data(String content, boolean isConneted,boolean isFound){
 			this.content = content;
 			this.isConnected = isConneted;
+			this.isFound = isFound;
 		}
 		public String content;
-		public  boolean isConnected;
+		public  boolean isConnected,isFound;
 	}
 
 
@@ -44,6 +45,12 @@ public class KAdapter extends RecyclerView.Adapter<KViewHolder> implements  KVie
 	public KAdapter( Map<Integer,Data> myDataset) {
 
 		mDataset = myDataset;
+	}
+
+	public void update(float timeElapsed){
+		for(KViewHolder kvh: holders.values()){
+			kvh.update(timeElapsed);
+		}
 	}
 
 	// Create new views (invoked by the layout manager)
@@ -67,7 +74,7 @@ public class KAdapter extends RecyclerView.Adapter<KViewHolder> implements  KVie
 		for (Map.Entry<Integer,Data> entry : mDataset.entrySet()) {
 			if(count++ == position){
 				//Found the correct data
-				holder.init(entry.getKey(),entry.getValue().content,entry.getValue().isConnected);
+				holder.init(entry.getKey(),entry.getValue().content,entry.getValue().isConnected,entry.getValue().isFound);
 				break;
 			}
 		}

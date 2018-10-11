@@ -29,7 +29,7 @@ public class RecyclerViewHandler implements KAdapterListener {
 	}
 
 	private RecyclerView mRecyclerView;
-	private RecyclerView.Adapter mAdapter;
+	private KAdapter mAdapter;
 	private RecyclerView.LayoutManager mLayoutManager;
 	private Map<Integer, Item> items = new Hashtable<Integer ,Item>();
 	public List<RecyclerViewListener> listeners = new ArrayList<RecyclerViewListener>();
@@ -49,7 +49,8 @@ public class RecyclerViewHandler implements KAdapterListener {
 
 	}
 	public void update(float timeElapsed){
-		
+		if(mAdapter != null)
+			mAdapter.update(timeElapsed);
 	}
 
 	public void setConnected(int id, boolean b) {
@@ -85,7 +86,7 @@ public class RecyclerViewHandler implements KAdapterListener {
 		for (Map.Entry<Integer,Item> entry : items.entrySet()) {
 			int key = entry.getKey();
 			Item value = entry.getValue();
-			tempList.put(entry.getKey(), new KAdapter.Data(value.content,value.isConnected));
+			tempList.put(entry.getKey(), new KAdapter.Data(value.content,value.isConnected,value.isFound));
 		}
 
 		KAdapter tempAdapter = new KAdapter(tempList);
