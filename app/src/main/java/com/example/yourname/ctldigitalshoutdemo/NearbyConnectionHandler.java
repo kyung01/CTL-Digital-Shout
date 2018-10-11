@@ -106,6 +106,54 @@ public class NearbyConnectionHandler {
 					}
 				}
 			};
+	private final ConnectionLifecycleCallback mConnectionLifecycleCallback2 =
+			new ConnectionLifecycleCallback() {
+				@Override
+				public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
+					// Automatically accept the connection on both sides.
+					Log.d(TAG, "onConnectionInitiated: Accepting the connection " + endpointId + ", " + connectionInfo);
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onConnectionRequested(endpointId, connectionInfo);
+					}
+
+				}
+
+				@Override
+				public void onConnectionResult(String endpointId, ConnectionResolution result) {
+					Log.d(TAG, "onConnectionResult: "+ endpointId+ ", "+ result);
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onConnectionRequestedResult(endpointId, result);
+					}
+					switch (result.getStatus().getStatusCode()) {
+						case ConnectionsStatusCodes.STATUS_OK:
+							// We're connected! Can now start sending and receiving data.
+							Log.d(TAG, "onConnectionResult: STATUS_OK");
+							break;
+						case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
+							// The connection was rejected by one or both sides.
+							Log.d(TAG, "onConnectionResult: REJECTED");
+							break;
+						case ConnectionsStatusCodes.STATUS_ERROR:
+							// The connection broke before it was able to be accepted.
+							Log.d(TAG, "onConnectionResult: ERROR");
+							break;
+					}
+
+				}
+
+				@Override
+				public void onDisconnected(String endpointId) {
+					// We've been disconnected from this endpoint. No more data can be
+					// sent or received.
+					Log.d(TAG, "onDisconnected: " +endpointId);
+
+					for(NearbyConnectionListener lst: listeners){
+						lst.onDisconnected(endpointId);
+					}
+				}
+			};
 
 
 
@@ -120,7 +168,7 @@ public class NearbyConnectionHandler {
 		isAdvertising = true;
 		Nearby.getConnectionsClient(activity).stopAdvertising();
 		Nearby.getConnectionsClient(activity).startAdvertising(
-				userNickname,
+				userNickname + Math.random()*1000,
 				SERVICE_ID,
 				mConnectionLifecycleCallback,new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build()
 		)
@@ -298,7 +346,7 @@ public class NearbyConnectionHandler {
 		Nearby.getConnectionsClient(context).acceptConnection(endpoint, mPayloadCallback);
 	}
 	public void requestConnection(Context context, String userNickname, String endpoint){
-		Nearby.getConnectionsClient(context).requestConnection(userNickname,endpoint, mConnectionLifecycleCallback);
+		Nearby.getConnectionsClient(context).requestConnection(userNickname,endpoint, mConnectionLifecycleCallback2);
 	}
 	public void requestDisconnect(Context context, String endpoint){
 		Nearby.getConnectionsClient(context).disconnectFromEndpoint(endpoint);
