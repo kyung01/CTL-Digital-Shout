@@ -3,6 +3,7 @@ package com.example.yourname.ctldigitalshoutdemo.UI.RecycleView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.example.yourname.ctldigitalshoutdemo.R;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 
 public class RecyclerViewHandler implements KAdapterListener {
 
-
+	final String TAG = "RecyclerViewHandler";
 	class Item {
 		Item(String endpoint) {
 			this.content = endpoint;
@@ -107,9 +108,9 @@ public class RecyclerViewHandler implements KAdapterListener {
 
 	@Override
 	public void onClickConnect(int id, String endpoint) {
-
+		Log.d(TAG, "onClickConnect: " + this.items.get(id).isConnected);
 		for(RecyclerViewListener l : listeners){
-			l.onRcyClickConnection(id,endpoint);
+			l.onRcyClickConnection(id,endpoint,!this.items.get(id).isConnected);
 		}
 	}
 

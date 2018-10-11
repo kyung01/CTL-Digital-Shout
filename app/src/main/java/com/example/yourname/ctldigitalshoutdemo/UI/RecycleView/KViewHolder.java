@@ -95,21 +95,21 @@ public class KViewHolder extends RecyclerView.ViewHolder {
 			//display not found animation
 			float ratio = (float)Math.cos(rateColorTransitionIsFound);
 			ratio = (1 + ratio) * 0.5f;
-			ratio = 1- ratio*ratio;
+			ratio = ratio*ratio;
 			rateColorTransitionIsFound += timeElapsed*10;
 			if(isConnected){
 				//Connected but not found. Display flashing orange
 				view.setBackgroundColor( (Color.rgb(
-						(int)hprLerp(255,0,ratio),
-						(int)hprLerp(165,0,ratio),
-						(int)hprLerp(0,255,ratio)) ) );
+						(int)hprLerp(100,0,ratio),
+						(int)hprLerp(100,0,ratio),
+						(int)hprLerp(150,255,ratio)) ) );
 
 			}else{
 				//Not connected and not found. Display flashing red
 				view.setBackgroundColor( (Color.rgb(
-						(int)hprLerp(100,255,ratio),
-						(int)hprLerp(0,0,ratio),
-						(int)hprLerp(0,0,ratio))) );
+						(int)hprLerp(150,255,ratio),
+						(int)hprLerp(100,0,ratio),
+						(int)hprLerp(100,0,ratio))) );
 			}
 		}
 
@@ -118,6 +118,7 @@ public class KViewHolder extends RecyclerView.ViewHolder {
 	public  void setConnected(boolean value){
 		this.isConnected = value;
 		view.setBackgroundColor( (isConnected)? Color.rgb(0,0,255):Color.rgb(255,0,0));
+		bttnConnect.setText((value)?"Disconnect":"Connect");
 	}
 	public void setFound(boolean b){
 		this.isFound = b;

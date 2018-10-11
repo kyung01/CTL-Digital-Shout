@@ -5,6 +5,7 @@ public interface UIEventRaiserListener {
 	void onAdvertisementStop();
 	void onDiscoverStart();
 	void onDiscoverStop();
+	void onShout();
 
 
 }

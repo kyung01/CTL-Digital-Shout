@@ -11,12 +11,14 @@ public class UIEventRaiser {
 	public List<UIEventRaiserListener> listeners = new ArrayList<>();
 	Button bttnAdvertise;
 	Button bttnDiscover;
+	Button bttnShout;
 	boolean isAdvertising = false;
 	boolean isDiscovering = false;
 
-	public void init(Button bttnAdvertise,Button bttnDiscover){
-		this.bttnAdvertise = bttnAdvertise;
-		this.bttnDiscover = bttnDiscover;
+	public void init(Button bttnAdvertise,Button bttnDiscover, Button bttnShout){
+		this.bttnAdvertise	= bttnAdvertise;
+		this.bttnDiscover	= bttnDiscover;
+		this.bttnShout		= bttnShout;
 		bttnAdvertise.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -27,6 +29,12 @@ public class UIEventRaiser {
 			@Override
 			public void onClick(View v) {
 				onClickBttnDiscover(v);
+			}
+		});
+		bttnShout.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				onClickBttnShout(v);
 			}
 		});
 	}
@@ -52,5 +60,12 @@ public class UIEventRaiser {
 				l.onDiscoverStop();
 		}
 	}
+	void onClickBttnShout(View view){
+
+		for(UIEventRaiserListener l : listeners)
+			l.onShout();
+
+	}
+
 
 }

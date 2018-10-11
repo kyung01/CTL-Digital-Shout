@@ -6,7 +6,6 @@ https://code.tutsplus.com/tutorials/google-play-services-using-the-nearby-connec
 package com.example.yourname.ctldigitalshoutdemo;
 
 import android.Manifest;
-import android.app.NotificationManager;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -14,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -38,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	UIEventRaiser		mUIEventRaiser = new UIEventRaiser();
 	UIDisplaySettings	mUIDisplaySettings = new UIDisplaySettings();
 	ConnectionOrganizer mConnectionOrganizer = new ConnectionOrganizer();
-	RecyclerViewHandler recyclerViewHandler = new RecyclerViewHandler();
+	RecyclerViewHandler mRecyclerViewHandler = new RecyclerViewHandler();
 	FeedbackTextView	feedback = new FeedbackTextView();
 
 	NearbyConnectionHandler nearbyConnectionHandler = new NearbyConnectionHandler(this,"UserNickName","ServiceID");
@@ -54,6 +52,11 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	String hprGetInput(){
 		EditText mEdit   = (EditText)findViewById(R.id.textEdit);
 		return mEdit.getText().toString();
+	}
+	void hprCleanInpit(){
+		EditText mEdit   = (EditText)findViewById(R.id.textEdit);
+		mEdit.setText("");
+
 	}
 
 	void requestPermissions(){
@@ -95,13 +98,13 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		setContentView(R.layout.activity_main);
 		//Link
 		nearbyConnectionHandler.listeners.add(this);
-		recyclerViewHandler.	listeners.add(this);
+		mRecyclerViewHandler.	listeners.add(this);
 		mUIEventRaiser.			listeners.add(this);
 		//Init
 		requestPermissions();
-		mUIEventRaiser		.init((Button)findViewById(R.id.bttnAdvertise),(Button)findViewById(R.id.bttnDiscover));
+		mUIEventRaiser		.init((Button)findViewById(R.id.bttnAdvertise),(Button)findViewById(R.id.bttnDiscover),(Button)findViewById(R.id.bttnShout));
 		mUIDisplaySettings	.init((Button)findViewById(R.id.bttnAdvertise),(Button)findViewById(R.id.bttnDiscover));
-		recyclerViewHandler	.init(this);
+		mRecyclerViewHandler.init(this);
 		feedback			.init((TextView)findViewById(R.id.kTextView));
 		//Settings
 		feedback.clean();
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		float timeElapsed = 0.017f;
 		//60 frames per second based.
 		//The actual time elapsed will be more complex. But accuracy is not required as we are handling only for the sake of animation
-		recyclerViewHandler.update(timeElapsed);
+		mRecyclerViewHandler.update(timeElapsed);
 
 	}
 
@@ -175,11 +178,11 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		boolean isNewConnection = false;
 		if(mConnectionOrganizer.add(endpoint)){
 			//new connection
-			recyclerViewHandler.add(hprStringToInt(endpoint),endpoint);
+			mRecyclerViewHandler.add(hprStringToInt(endpoint),endpoint);
 			isNewConnection = true;
 		}
 		mConnectionOrganizer.setFound(endpoint,true);
-		recyclerViewHandler.setFound(hprStringToInt(endpoint) , true);
+		mRecyclerViewHandler.setFound(hprStringToInt(endpoint) , true);
 		//old connection
 		return isNewConnection;
 	}
@@ -187,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	boolean onEndpointLost(String endpoint){
 		Log.d(TAG, "onEndpointLost: " + endpoint);
 		mConnectionOrganizer.setFound(endpoint,false);
-		recyclerViewHandler.setFound(hprStringToInt(endpoint) , false);
+		mRecyclerViewHandler.setFound(hprStringToInt(endpoint) , false);
 		return false;
 	}
 
@@ -220,12 +223,12 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		onAcceptConnectionTo(endpoint);
 	}
 	void onConnectionRequest_Success(String	 endpoint){
-		recyclerViewHandler.setConnected(hprStringToInt(endpoint),true);
+		mRecyclerViewHandler.setConnected(hprStringToInt(endpoint),true);
 		mConnectionOrganizer.setConnected(endpoint,true);
 
 	}
 	void onConnectionRequest_Rejected(String	 endpoint){
-		recyclerViewHandler.setConnected(hprStringToInt(endpoint),false);
+		mRecyclerViewHandler.setConnected(hprStringToInt(endpoint),false);
 		mConnectionOrganizer.setConnected(endpoint,false);
 
 	}
@@ -258,8 +261,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
         //mConnectionOrganizer.setConnected(endpointId, false);
 		Log.d(TAG, "onDisconnected: Called");
 		mConnectionOrganizer.setConnected(endpointId, false);
-        recyclerViewHandler.setConnected(hprStringToInt(endpointId), false);
-
+        mRecyclerViewHandler.setConnected(hprStringToInt(endpointId), false);
 	}
 
 	@Override
@@ -275,9 +277,19 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	}
 
 	@Override
-	public void onRcyClickConnection(int id, String endpoint) {
-    	nearbyConnectionHandler.requestConnection(this,USER_NICKNAME,endpoint);
+	public void onRcyClickConnection(int id, String endpoint, boolean requestedState) {
 		Log.d(TAG, "onRcyClickConnection: " + endpoint);
+		if(requestedState){
+			//requested to connect
+			Log.d(TAG, "onRcyClickConnection: Requesting to connect");
+			nearbyConnectionHandler.requestConnection(this,USER_NICKNAME,endpoint);
+		}
+		else{
+			//requested to disconnect
+			Log.d(TAG, "onRcyClickConnection: Requesting to disconnect");
+			nearbyConnectionHandler.requestDisconnect(this,endpoint);
+			onDisconnected(endpoint);
+		}
 	}
 
 	@Override
@@ -311,5 +323,14 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		nearbyConnectionHandler.stopDiscovery(this);
 		mUIDisplaySettings.setDiscover(true);
 
+	}
+
+	@Override
+	public void onShout() {
+		for(String endpoint : mConnectionOrganizer.connections.keySet()){
+			nearbyConnectionHandler.sendPayload(this,endpoint, hprGetInput() );
+			feedback.display("sent to  ["+endpoint+"]: [" +hprGetInput()+"]\n");
+		}
+		hprCleanInpit();
 	}
 }

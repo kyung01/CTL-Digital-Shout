@@ -118,6 +118,7 @@ public class NearbyConnectionHandler {
 	public void startAdvertising(AppCompatActivity activity, String userNickname) {
 		Log.d(TAG, "startAdvertising: Called");
 		isAdvertising = true;
+		Nearby.getConnectionsClient(activity).stopAdvertising();
 		Nearby.getConnectionsClient(activity).startAdvertising(
 				userNickname,
 				SERVICE_ID,
@@ -162,6 +163,7 @@ public class NearbyConnectionHandler {
 	public void startDiscovery(AppCompatActivity activity) {
 		Log.d(TAG, "startDiscovery: ");
 		isDiscovering = true;
+		Nearby.getConnectionsClient(activity).stopDiscovery();
 		Nearby.getConnectionsClient(activity).startDiscovery(
 				SERVICE_ID,
 				mEndpointDiscoveryCallback,
@@ -298,5 +300,9 @@ public class NearbyConnectionHandler {
 	public void requestConnection(Context context, String userNickname, String endpoint){
 		Nearby.getConnectionsClient(context).requestConnection(userNickname,endpoint, mConnectionLifecycleCallback);
 	}
+	public void requestDisconnect(Context context, String endpoint){
+		Nearby.getConnectionsClient(context).disconnectFromEndpoint(endpoint);
+	}
+
 
 }
