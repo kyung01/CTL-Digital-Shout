@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	//UI
 	UIEventRaiser		mUIEventRaiser = new UIEventRaiser();
 	UIDisplaySettings	mUIDisplaySettings = new UIDisplaySettings();
+	ConnectionOrganizer mConnectionOrganizer = new ConnectionOrganizer();
 	RecyclerViewHandler recyclerViewHandler = new RecyclerViewHandler();
 	FeedbackTextView	feedback = new FeedbackTextView();
 
@@ -48,12 +49,6 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 			num += (int)s.charAt(i) * Math.pow(10,i);
 		}
 		return num;
-	}
-
-	public void onClickBttnTransmit(View view) {
-		Log.d(TAG, "onClickBttnTransmit: requesting to send a payload to NearbyConnectionHandler");
-		//Send message to everyone that's on the list
-		feedback.display("sent to [ALL]: ["+hprGetInput()+"]\n");
 	}
 
 	String hprGetInput(){
@@ -92,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		Log.d(TAG, "onCreate: Permission check is completed");
 	}
 
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -111,7 +107,38 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		feedback.clean();
 		feedback.display("Feedback Test Message\n");
 		((TextView)findViewById(R.id.kTextView) ) .setMovementMethod(new ScrollingMovementMethod());
+		//Thread for updating
+		Thread t = new Thread() {
+
+			@Override
+			public void run() {
+				try {
+					while (!isInterrupted()) {
+						//60 frames per second
+						Thread.sleep(17);
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								update();
+							}
+						});
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		};
+
+		t.start();
 	}
+
+	void update(){
+		float timeElapsed = 0.017f;
+		//60 frames per second based.
+		//The actual time elapsed will be more complex. But accuracy is not required as we are handling only for the sake of animation
+		recyclerViewHandler.update(timeElapsed);
+
+	}
+
 
 	/*
 	from https://developer.android.com/training/permissions/requesting#java
@@ -143,49 +170,82 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		}
 	}
 
+	boolean onEndpointFound(String endpoint){
+		if(mConnectionOrganizer.add(endpoint)){
+			mConnectionOrganizer.setFound(endpoint,true);
+			//new connection
+			recyclerViewHandler.add(hprStringToInt(endpoint),endpoint);
+			recyclerViewHandler.setFound(hprStringToInt(endpoint) , true);
+			return true;
+		}
+		//old connection
+		return false;
+	}
+
+	boolean onEndpointLost(String endpoint){
+		mConnectionOrganizer.setFound(endpoint,false);
+		recyclerViewHandler.setFound(hprStringToInt(endpoint) , false);
+		return false;
+	}
+
+	boolean onAcceptConnectionTo(String endpoint){
+		if(mConnectionOrganizer.isConnected(endpoint)){
+			//already connected. there is no need to do anything here
+			return false;
+		}
+		nearbyConnectionHandler.acceptRequest(this, endpoint);
+		return true;
+	}
+
+
+
+
 	//NearbyConnectHandlerListener
 	@Override
 	public void onDcvEndPointFound(String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
-		//mConnectionOrganizer.add(endpointId);
-		Log.d(TAG, "onDcvEndPointFound: " + endpointId);
-		recyclerViewHandler.add(hprStringToInt(endpointId),endpointId);
+		onEndpointFound(endpointId);
 	}
 
 	@Override
 	public void onDcvEndPointLost(String endpoint) {
-        //mConnectionOrganizer.setConnected(endpointId, false);
-		Log.d(TAG, "onDcvEndPointLost: " + endpoint);
-        recyclerViewHandler.remove(hprStringToInt(endpoint));
+		onEndpointLost(endpoint);
 	}
 
 	@Override
 	public void onConnectionRequested(String endpoint, ConnectionInfo info) {
-        //request to accept the connection
-		Log.d(TAG, "onConnectionRequested: " + endpoint + ", " +info);
-        nearbyConnectionHandler.acceptRequest(this, endpoint);
+		onEndpointFound(endpoint);
+		onAcceptConnectionTo(endpoint);
 	}
+	void onConnectionRequest_Success(String	 endpoint){
+		recyclerViewHandler.setConnected(hprStringToInt(endpoint),true);
+		mConnectionOrganizer.setConnected(endpoint,true);
+
+	}
+	void onConnectionRequest_Rejected(String	 endpoint){
+		recyclerViewHandler.setConnected(hprStringToInt(endpoint),false);
+		mConnectionOrganizer.setConnected(endpoint,false);
+
+	}
+	void onConnectionRequest_Error(String	 endpoint, ConnectionResolution result){
+		Log.d(TAG, "onConnectionRequest_Error: " + result);
+
+	}
+
 
 	@Override
 	public void onConnectionRequestedResult(String endpointId, ConnectionResolution result) {
-		recyclerViewHandler.add(hprStringToInt(endpointId), endpointId);
         switch (result.getStatus().getStatusCode()) {
             case ConnectionsStatusCodes.STATUS_OK:
                 // We're connected! Can now start sending and receiving data.
-                Log.d(TAG, "onConnectionResult: STATUS_OK");
-                //mConnectionOrganizer.setConnected(endpointId, true);
-				recyclerViewHandler.setConnected(hprStringToInt(endpointId), true);
+				onConnectionRequest_Success(endpointId);
                 break;
             case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                 // The connection was rejected by one or both sides.
-                Log.d(TAG, "onConnectionResult: REJECTED");
-                //mConnectionOrganizer.setConnected(endpointId, false);
-				recyclerViewHandler.setConnected(hprStringToInt(endpointId), false);
+				onConnectionRequest_Rejected(endpointId);
                 break;
             case ConnectionsStatusCodes.STATUS_ERROR:
                 // The connection broke before it was able to be accepted.
-                Log.d(TAG, "onConnectionResult: ERROR: " + result);
-                //mConnectionOrganizer.setConnected(endpointId, false);
-				recyclerViewHandler.setConnected(hprStringToInt(endpointId), false);
+				onConnectionRequest_Error(endpointId,result);
                 break;
         }
 	}
@@ -194,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	public void onDisconnected(String endpointId) {
         //mConnectionOrganizer.setConnected(endpointId, false);
 		Log.d(TAG, "onDisconnected: Called");
+		mConnectionOrganizer.setConnected(endpointId, false);
         recyclerViewHandler.setConnected(hprStringToInt(endpointId), false);
 
 	}
@@ -218,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 
 	@Override
 	public void onRcyClickSend(int id, String endpoint) {
-    	nearbyConnectionHandler.sendPayload(endpoint,hprGetInput());
+    	nearbyConnectionHandler.sendPayload(this,endpoint,hprGetInput());
 		feedback.display("sent to  ["+endpoint+"]: [" +hprGetInput()+"]\n");
 
 	}

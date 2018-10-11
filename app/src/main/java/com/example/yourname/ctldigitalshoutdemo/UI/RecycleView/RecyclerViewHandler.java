@@ -20,10 +20,12 @@ public class RecyclerViewHandler implements KAdapterListener {
 		Item(String endpoint) {
 			this.content = endpoint;
 			this.isConnected = false;
+			this.isFound = false;
 		}
 
 		public String content;
 		public boolean isConnected;
+		public boolean isFound;
 	}
 
 	private RecyclerView mRecyclerView;
@@ -46,8 +48,17 @@ public class RecyclerViewHandler implements KAdapterListener {
 		add(0,"EndpointIDs");
 
 	}
+	public void update(float timeElapsed){
+		
+	}
+
 	public void setConnected(int id, boolean b) {
 		items.get(id).isConnected = b;
+		syncItems();
+	}
+
+	public void setFound(int id, boolean b) {
+		items.get(id).isFound = b;
 		syncItems();
 	}
 	public void add(int id, String content) {

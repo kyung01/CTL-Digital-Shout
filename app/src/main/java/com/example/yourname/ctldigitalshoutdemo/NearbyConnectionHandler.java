@@ -41,7 +41,6 @@ interface NearbyConnectionListener{
 }
 
 public class NearbyConnectionHandler {
-	public static AppCompatActivity context;
 
 	String TAG = "NearbyConnectionHandler";
 	String SERVICE_ID = "SERVICE_ID_DEFAULT";
@@ -192,10 +191,10 @@ public class NearbyConnectionHandler {
 	}
 
 
-	public void sendPayload(String endpoint, String content) {
+	public void sendPayload(AppCompatActivity activity, String endpoint, String content) {
 		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
 		Payload payload = Payload.fromBytes(content.getBytes());
-		Nearby.getConnectionsClient(context).sendPayload(endpoint,payload);
+		Nearby.getConnectionsClient(activity).sendPayload(endpoint,payload);
 	}
 
 
@@ -204,8 +203,10 @@ public class NearbyConnectionHandler {
 	//...
 
 
-	private NotificationCompat.Builder buildNotification(Payload payload, boolean isIncoming) {
-		NotificationCompat.Builder notification = new NotificationCompat.Builder(context,"channelID")
+	/*
+
+	private NotificationCompat.Builder buildNotification(AppCompatActivity activity, Payload payload, boolean isIncoming) {
+		NotificationCompat.Builder notification = new NotificationCompat.Builder(activity,"channelID")
 				.setContentTitle(isIncoming ? "Receiving..." : "Sending...");
 		int size = payload.asBytes().length;
 		boolean indeterminate = false;
@@ -217,6 +218,8 @@ public class NearbyConnectionHandler {
 		notification.setProgress(size, 0, indeterminate);
 		return notification;
 	}
+
+	 */
 
 	//...
 	PayloadCallback mPayloadCallback = new PayloadCallback() {
@@ -233,13 +236,17 @@ public class NearbyConnectionHandler {
 					l.onPayoadMessageReceived(endpointId,message);
 				return;
 			}
+			/*
 
 			// Build and start showing the notification.
-			NotificationCompat.Builder notification = buildNotification(payload, true /*isIncoming*/);
-			((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE)).notify((int) payload.getId(), notification.build());
+			//NotificationCompat.Builder notification = buildNotification(payload, true );
+			//((NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE)).notify((int) payload.getId(), notification.build());
 
 			// Add it to the tracking list so we can update it.
-			incomingPayloads.put(payload.getId(), notification);
+			//incomingPayloads.put(payload.getId(), notification);
+			/*
+
+			 */
 		}
 
 		@Override
