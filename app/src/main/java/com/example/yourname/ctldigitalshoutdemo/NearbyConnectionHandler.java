@@ -1,5 +1,12 @@
 package com.example.yourname.ctldigitalshoutdemo;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 import android.app.NotificationManager;
@@ -9,6 +16,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.util.SimpleArrayMap;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.Pair;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
@@ -38,6 +46,8 @@ interface NearbyConnectionListener{
 	void onConnectionRequested(String endpoint, ConnectionInfo info);
 	void onConnectionRequestedResult(String endpointId, ConnectionResolution result);
 	void onDisconnected(String endpointId);
+
+	void onEchoMessage(PayloadContent content);
 }
 
 public class NearbyConnectionHandler {
@@ -48,11 +58,27 @@ public class NearbyConnectionHandler {
 	boolean isAdvertising = false;
 	boolean isDiscovering = false;
 	List<NearbyConnectionListener> listeners = new ArrayList<NearbyConnectionListener>();
+	List<Integer> receivedMessageIds = new ArrayList<>();
+	static class PayloadContentEcho{
+		public float timeLeft;
+		public PayloadContent payloadContnet;
+		PayloadContentEcho(float timeLeft,  PayloadContent p){this.timeLeft=timeLeft;this.payloadContnet = p;}
+
+	}
+
+	List<PayloadContentEcho> echoedMessages = new ArrayList<>();
 
 	NearbyConnectionHandler(AppCompatActivity activity, String userNickName, String serviceId){
 		SERVICE_ID = serviceId;
 	}
 
+	boolean isPayloadContentDuplicatedMessage(PayloadContent content){
+		if(receivedMessageIds.contains(content.id)){
+			return true;
+		}
+		receivedMessageIds.add(content.id);
+		return false;
+	}
 
 
 
@@ -240,10 +266,60 @@ public class NearbyConnectionHandler {
 
 	}
 
+	byte[] hprToByteArr(PayloadContent content){
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutput out = null;
+		byte[] bytes = null;
+		try {
+			out = new ObjectOutputStream(bos);
+			out.writeObject(content);
+			out.flush();
+			bytes = bos.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+			Log.d(TAG, "hprToByteArr: Catch " + e);
+		} finally {
+			try {
+				bos.close();
+			} catch (IOException ex) {
+				// ignore close exception
+			}
+		}
+		return bytes;
+	}
+	PayloadContent hprToPayloadContent(byte[] bytes){
+		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+		ObjectInput in = null;
+		PayloadContent content = null;
+		try {
+			in = new ObjectInputStream(bis);
+			content = (PayloadContent)in.readObject();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (in != null) {
+					in.close();
+				}
+			} catch (IOException ex) {
+				// ignore close exception
+			}
+		}
+		return content;
+	}
 
-	public void sendPayload(AppCompatActivity activity, String endpoint, String content) {
-		Log.d(TAG, "sendPayload: Attempting to send pay load [" + content + "] to endpoint: " + endpoint);
-		Payload payload = Payload.fromBytes(content.getBytes());
+
+
+	public void sendPayload(AppCompatActivity activity, String endpoint, PayloadContent payloadContent) {
+		Log.d(TAG, "sendPayload: Attempting to send pay load [" + payloadContent + "] to endpoint: " + endpoint);
+
+		if(payloadContent.type == PayloadContent.MESSAGE_TYPE.ECHO){
+			echoedMessages.add(new PayloadContentEcho(10.0f,payloadContent));
+		}
+
+		Payload payload = Payload.fromBytes(hprToByteArr(payloadContent));
 		Nearby.getConnectionsClient(activity).sendPayload(endpoint,payload);
 	}
 
@@ -280,10 +356,18 @@ public class NearbyConnectionHandler {
 			Log.d(TAG, "onPayloadReceived: Payload is here!");
 			if (payload.getType() == Payload.Type.BYTES) {
 				// No need to track progress for bytes.
-				String message = new String(payload.asBytes());
-				Log.d(TAG, "onPayloadReceived: received: " + message );
-				for(NearbyConnectionListener l : listeners)
-					l.onPayoadMessageReceived(endpointId,message);
+				PayloadContent payloadContent = hprToPayloadContent(payload.asBytes());
+				Log.d(TAG, "onPayloadReceived: received: " + payloadContent.content );
+				if(isPayloadContentDuplicatedMessage(payloadContent)){
+					//We received a duplicated message
+				}else{
+					//not a duplicate
+					if(payloadContent.type == PayloadContent.MESSAGE_TYPE.ECHO){
+						echoedMessages.add(new PayloadContentEcho(10.0f,payloadContent));
+					}
+					for(NearbyConnectionListener l : listeners)
+						l.onPayoadMessageReceived(endpointId,payloadContent.content);
+				}
 				return;
 			}
 			/*
@@ -353,4 +437,23 @@ public class NearbyConnectionHandler {
 	}
 
 
+	public void update(float timeElapsed) {
+		for(int i = echoedMessages.size()-1 ; i>=0;i--){
+			int numBefore = (int)echoedMessages.get(i).timeLeft;
+			float timeLeft = echoedMessages.get(i).timeLeft - timeElapsed;
+			int numAfter = (int)timeLeft;
+			if(numBefore != numAfter){
+				for(NearbyConnectionListener l : listeners){
+					l.onEchoMessage(echoedMessages.get(i).payloadContnet);
+				}
+			}
+			if(timeLeft <0){
+				echoedMessages.remove(i);
+			}else{
+				echoedMessages.get(i).timeLeft = timeLeft;
+			}
+
+		}
+
+	}
 }

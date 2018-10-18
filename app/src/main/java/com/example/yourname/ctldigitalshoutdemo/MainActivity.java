@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 		//60 frames per second based.
 		//The actual time elapsed will be more complex. But accuracy is not required as we are handling only for the sake of animation
 		mRecyclerViewHandler.update(timeElapsed);
+		nearbyConnectionHandler.update(timeElapsed);
 
 	}
 
@@ -265,6 +266,14 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	}
 
 	@Override
+	public void onEchoMessage(PayloadContent content) {
+		for(String endpoint : mConnectionOrganizer.connections.keySet()){
+			nearbyConnectionHandler.sendPayload(this,endpoint, content);
+			feedback.display("Echoing  ["+endpoint+"]: [" +content.content+"]\n");
+		}
+	}
+
+	@Override
 	public void onPayoadMessageReceived(String endpoint, String content) {
 		feedback.display("["+ endpoint + "] sent [" + content+"]\n");
 	}
@@ -294,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 
 	@Override
 	public void onRcyClickSend(int id, String endpoint) {
-    	nearbyConnectionHandler.sendPayload(this,endpoint,hprGetInput());
+    	nearbyConnectionHandler.sendPayload(this,endpoint,new PayloadContent(PayloadContent.MESSAGE_TYPE.DEFAULT , hprGetInput() ));
 		feedback.display("sent to  ["+endpoint+"]: [" +hprGetInput()+"]\n");
 
 	}
@@ -328,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	@Override
 	public void onShout() {
 		for(String endpoint : mConnectionOrganizer.connections.keySet()){
-			nearbyConnectionHandler.sendPayload(this,endpoint, hprGetInput() );
+			nearbyConnectionHandler.sendPayload(this,endpoint, new PayloadContent(PayloadContent.MESSAGE_TYPE.ECHO, hprGetInput()) );
 			feedback.display("sent to  ["+endpoint+"]: [" +hprGetInput()+"]\n");
 		}
 		hprCleanInpit();
