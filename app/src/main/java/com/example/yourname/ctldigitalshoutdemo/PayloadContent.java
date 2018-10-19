@@ -7,6 +7,7 @@ public class PayloadContent implements Serializable{
 	public int id;
 	public MESSAGE_TYPE type;
 	public String content;
+
 	PayloadContent(MESSAGE_TYPE _type, String _content){
 		id = (int)(Math.random()* Integer.MIN_VALUE);
 		this.type= _type;

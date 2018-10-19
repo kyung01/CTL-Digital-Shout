@@ -269,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements  NearbyConnection
 	public void onEchoMessage(PayloadContent content) {
 		for(String endpoint : mConnectionOrganizer.connections.keySet()){
 			nearbyConnectionHandler.sendPayload(this,endpoint, content);
-			feedback.display("Echoing  ["+endpoint+"]: [" +content.content+"]\n");
+			feedback.display("Echoing message ["+content.content+"] to [" +endpoint+"]\n");
 		}
 	}
 

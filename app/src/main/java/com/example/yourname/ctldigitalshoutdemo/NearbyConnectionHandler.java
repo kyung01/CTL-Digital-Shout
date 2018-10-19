@@ -61,8 +61,13 @@ public class NearbyConnectionHandler {
 	List<Integer> receivedMessageIds = new ArrayList<>();
 	static class PayloadContentEcho{
 		public float timeLeft;
+		public int lastTick;
 		public PayloadContent payloadContnet;
-		PayloadContentEcho(float timeLeft,  PayloadContent p){this.timeLeft=timeLeft;this.payloadContnet = p;}
+		PayloadContentEcho(float timeLeft,  PayloadContent p){
+			this.timeLeft=timeLeft;
+			this.payloadContnet = p;
+			lastTick = 0;
+		}
 
 	}
 
@@ -79,6 +84,7 @@ public class NearbyConnectionHandler {
 		receivedMessageIds.add(content.id);
 		return false;
 	}
+
 
 
 
@@ -315,7 +321,7 @@ public class NearbyConnectionHandler {
 	public void sendPayload(AppCompatActivity activity, String endpoint, PayloadContent payloadContent) {
 		Log.d(TAG, "sendPayload: Attempting to send pay load [" + payloadContent + "] to endpoint: " + endpoint);
 
-		if(payloadContent.type == PayloadContent.MESSAGE_TYPE.ECHO){
+		if(!isPayloadContentDuplicatedMessage(payloadContent) && payloadContent.type == PayloadContent.MESSAGE_TYPE.ECHO){
 			echoedMessages.add(new PayloadContentEcho(10.0f,payloadContent));
 		}
 
@@ -439,14 +445,14 @@ public class NearbyConnectionHandler {
 
 	public void update(float timeElapsed) {
 		for(int i = echoedMessages.size()-1 ; i>=0;i--){
-			int numBefore = (int)echoedMessages.get(i).timeLeft;
 			float timeLeft = echoedMessages.get(i).timeLeft - timeElapsed;
-			int numAfter = (int)timeLeft;
-			if(numBefore != numAfter){
+			int tickCurrent = (int)timeLeft;
+			if(echoedMessages.get(i).lastTick != tickCurrent){
 				for(NearbyConnectionListener l : listeners){
 					l.onEchoMessage(echoedMessages.get(i).payloadContnet);
 				}
 			}
+			echoedMessages.get(i).lastTick = tickCurrent;
 			if(timeLeft <0){
 				echoedMessages.remove(i);
 			}else{
